@@ -7,7 +7,7 @@ public class Main {
         JFrame window = new JFrame();
         window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         window.setResizable(false);
-        window.setTitle("Test");
+        window.setTitle("DE REGRESO DEL MICTLÁN");
         window.setSize(1280, 960);
 
         GamePanel gamePanel = new GamePanel();
