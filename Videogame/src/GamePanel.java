@@ -32,7 +32,12 @@ public class GamePanel extends JPanel implements Runnable {
         this.addKeyListener(keyH);
         this.setFocusable(true);
         try {
-            backgroundImage = ImageIO.read(new File("/assets/background.jpg"));
+            backgroundImage = ImageIO.read(new File("src/assets/background.jpg"));
+            if (backgroundImage == null) {
+                System.out.println("La imagen no se pudo cargar.");
+            } else {
+                System.out.println("La imagen se cargó correctamente.");
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
