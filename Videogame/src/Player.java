@@ -34,7 +34,10 @@ public class Player extends Entity {
             // Constantes específicas del jugador
             velocityY = -15;  // Fuerza de salto negativa (hacia arriba)
         }
-
+        if (keyH.downPressed) {
+            // Constantes específicas del jugador
+            velocityY = 10;  // Caer más rápido
+        }
         // Aplica la gravedad (llamada al métod0 de la clase padre)
         super.update();
 
@@ -43,7 +46,7 @@ public class Player extends Entity {
             y = floor - height;  // Coloca al jugador en el suelo
             velocityY = 0;       // Detiene la caída
         }
-
+/*
         // Movimiento horizontal
         if (keyH.leftPressed) {
             x -= speed;
@@ -59,5 +62,6 @@ public class Player extends Entity {
             }
             facingRight = true;  // Actualiza la dirección
         }
+*/
     }
 }

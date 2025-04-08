@@ -40,7 +40,7 @@ public class GamePanel extends JPanel implements Runnable {
         this.setFocusable(true);       // Permite que el panel reciba eventos de teclado
 
         // Inicializa al jugador
-        player = new Player(100, 500, tile_size, tile_size, 4, keyH);
+        player = new Player(200, 500, tile_size, tile_size, 4, keyH);
         player.loadImage("Videogame/src/assets/player.png");
 
         // Carga la imagen de fondo
@@ -96,31 +96,42 @@ public class GamePanel extends JPanel implements Runnable {
         }
     }
 
+    // Posición del fondo
+    private int backgroundX = 0;
+
     /**
      * Actualiza la lógica del juego (movimiento, colisiones, etc).
      */
     public void update() {
-        // Actualiza al jugador
+        // Actualiza la posición del fondo para simular el auto-scroll
+        // Velocidad del auto-scroll
+        int backgroundSpeed = 4;
+        backgroundX -= backgroundSpeed;
+
+        // Reinicia la posición del fondo cuando salga completamente de la pantalla
+        if (backgroundX <= -screen_width) {
+            backgroundX = 0;
+        }
+
+        // Actualiza al jugador (solo para el salto)
         player.update(screen_width, screen_height);
     }
 
-    /**
-     * Renderiza todos los elementos del juego.
-     * Este métod0 es llamado automáticamente cuando se invoca repaint().
-     */
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        Graphics2D g2 = (Graphics2D) g;  // Conversión a Graphics2D para más funcionalidades
+        Graphics2D g2 = (Graphics2D) g;
 
-        // Dibuja la imagen de fondo
+        // Dibuja el fondo desplazado
         if (backgroundImage != null) {
-            g2.drawImage(backgroundImage, 0, 0, this.getWidth(), this.getHeight(), this);
+            // Dibuja dos copias del fondo para simular un bucle continuo
+            g2.drawImage(backgroundImage, backgroundX, 0, this.getWidth(), this.getHeight(), this);
+            g2.drawImage(backgroundImage, backgroundX + screen_width, 0, this.getWidth(), this.getHeight(), this);
         }
 
         // Dibuja al jugador
         player.render(g2);
 
-        g2.dispose();  // Libera recursos gráficos
+        g2.dispose();
     }
 }
