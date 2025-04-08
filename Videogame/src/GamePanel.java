@@ -26,8 +26,10 @@ public class GamePanel extends JPanel implements Runnable {
     private Image backgroundImage;
     private Image playerImage;
 
+    private final double gravity = 0.5;
+    private double velocityY = 0;
+
     public GamePanel() {
-        this.gravity = .5;
         this.setPreferredSize(new Dimension(screen_width, screen_height));
         this.setBackground(Color.BLACK);
         this.setDoubleBuffered(true);
@@ -76,26 +78,21 @@ public class GamePanel extends JPanel implements Runnable {
         }
     }
 
-    private final double gravity;
-    private int velocityY = 0;
-
     public void update() {
-        int floor = screen_height - 75;
+        int floor = screen_height - tile_size;
 
         if (keyH.upPressed && player_y + tile_size >= floor) {
             velocityY = -10;
         }
 
-        velocityY += (int) gravity;
+        velocityY += gravity;
         player_y += velocityY;
 
-        if (keyH.downPressed) {
-            player_y += player_speed;
-            if (player_y + tile_size > floor) {
-                player_y = floor - tile_size;
-                velocityY = 0;
-            }
+        if (player_y + tile_size > floor) {
+            player_y = floor - tile_size;
+            velocityY = 0;
         }
+
         if (keyH.leftPressed) {
             player_x -= player_speed;
             if (player_x < 0) {
@@ -107,10 +104,6 @@ public class GamePanel extends JPanel implements Runnable {
             if (player_x + tile_size > screen_width) {
                 player_x = screen_width - tile_size;
             }
-        }
-        if (player_y + tile_size > floor) {
-            player_y = floor - tile_size;
-            velocityY = 0;
         }
     }
 
