@@ -18,26 +18,24 @@ public class GamePanel extends JPanel implements Runnable {
     Thread gameThread;
 
     int player_x = 100;
-    int player_y = 100;
+    int player_y = 500;
     int player_speed = 4;
 
     int FPS = 60;
 
     private Image backgroundImage;
+    private Image playerImage;
 
     public GamePanel() {
+        this.gravity = .5;
         this.setPreferredSize(new Dimension(screen_width, screen_height));
         this.setBackground(Color.BLACK);
         this.setDoubleBuffered(true);
         this.addKeyListener(keyH);
         this.setFocusable(true);
         try {
-            backgroundImage = ImageIO.read(new File("src/assets/background.jpg"));
-            if (backgroundImage == null) {
-                System.out.println("La imagen no se pudo cargar.");
-            } else {
-                System.out.println("La imagen se cargó correctamente.");
-            }
+            backgroundImage = ImageIO.read(new File("Videogame/src/assets/background.jpg"));
+            playerImage = ImageIO.read(new File("Videogame/src/assets/player.jpeg"));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -78,17 +76,24 @@ public class GamePanel extends JPanel implements Runnable {
         }
     }
 
-   public void update() {
-        if (keyH.upPressed) {
-            player_y -= player_speed;
-            if (player_y < 0) {
-                player_y = 0;
-            }
+    private final double gravity;
+    private int velocityY = 0;
+
+    public void update() {
+        int floor = screen_height - 75;
+
+        if (keyH.upPressed && player_y + tile_size >= floor) {
+            velocityY = -10;
         }
+
+        velocityY += (int) gravity;
+        player_y += velocityY;
+
         if (keyH.downPressed) {
             player_y += player_speed;
-            if (player_y + tile_size > screen_height) {
-                player_y = screen_height - tile_size;
+            if (player_y + tile_size > floor) {
+                player_y = floor - tile_size;
+                velocityY = 0;
             }
         }
         if (keyH.leftPressed) {
@@ -103,6 +108,10 @@ public class GamePanel extends JPanel implements Runnable {
                 player_x = screen_width - tile_size;
             }
         }
+        if (player_y + tile_size > floor) {
+            player_y = floor - tile_size;
+            velocityY = 0;
+        }
     }
 
     @Override
@@ -114,8 +123,9 @@ public class GamePanel extends JPanel implements Runnable {
             g2.drawImage(backgroundImage, 0, 0, this.getWidth(), this.getHeight(), this);
         }
 
-        g2.setColor(Color.WHITE);
-        g2.fillRect(player_x, player_y, tile_size, tile_size);
+        if (playerImage != null) {
+            g2.drawImage(playerImage, player_x, player_y, tile_size, tile_size, this);
+        }
 
         g2.dispose();
     }
