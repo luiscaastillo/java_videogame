@@ -11,15 +11,15 @@ public class KeyHandler implements KeyListener {
     public boolean upPressed, downPressed, leftPressed, rightPressed;
 
     /**
-     * Método invocado cuando se tipea una tecla (no usado en este juego).
+     * Métod0 invocado cuando se tipea una tecla (no usado en este juego).
      */
     @Override
     public void keyTyped(java.awt.event.KeyEvent e) {
-        // No se implementa funcionalidad para este método
+        // No se implementa funcionalidad para este Métod0
     }
 
     /**
-     * Método invocado cuando se presiona una tecla.
+     * Métod0 invocado cuando se presiona una tecla.
      * Actualiza las variables de dirección según la tecla presionada.
      */
     @Override
@@ -27,22 +27,18 @@ public class KeyHandler implements KeyListener {
         int code = e.getKeyCode();  // Obtiene el código de la tecla presionada
 
         // Actualiza las variables de estado según la tecla presionada
-        if (code == KeyEvent.VK_W) {
+        if (code == KeyEvent.VK_W)
             upPressed = true;
-        }
-        if (code == KeyEvent.VK_A) {
+        if (code == KeyEvent.VK_A)
             leftPressed = true;
-        }
-        if (code == KeyEvent.VK_S) {
+        if (code == KeyEvent.VK_S)
             downPressed = true;
-        }
-        if (code == KeyEvent.VK_D) {
+        if (code == KeyEvent.VK_D)
             rightPressed = true;
-        }
     }
 
     /**
-     * Método invocado cuando se suelta una tecla.
+     * Métod0 invocado cuando se suelta una tecla.
      * Actualiza las variables de dirección cuando se deja de presionar una tecla.
      */
     @Override
@@ -50,17 +46,13 @@ public class KeyHandler implements KeyListener {
         int code = e.getKeyCode();  // Obtiene el código de la tecla liberada
 
         // Actualiza las variables de estado cuando se suelta una tecla
-        if (code == KeyEvent.VK_W) {
+        if (code == KeyEvent.VK_W)
             upPressed = false;
-        }
-        if (code == KeyEvent.VK_A) {
+        if (code == KeyEvent.VK_A)
             leftPressed = false;
-        }
-        if (code == KeyEvent.VK_S) {
+        if (code == KeyEvent.VK_S)
             downPressed = false;
-        }
-        if (code == KeyEvent.VK_D) {
+        if (code == KeyEvent.VK_D)
             rightPressed = false;
-        }
     }
 }
