@@ -114,7 +114,7 @@ public class GamePanel extends JPanel implements Runnable {
         }
 
         // Actualiza al jugador (solo para el salto)
-        player.update(screen_width, screen_height);
+        player.update(screen_height);
     }
 
     @Override
