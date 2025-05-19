@@ -1,5 +1,4 @@
 import java.awt.*;
-import java.awt.geom.AffineTransform;
 import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
@@ -20,7 +19,6 @@ public class Entity {
 
     // Imagen y dirección
     protected Image sprite;          // Imagen de la entidad
-    protected boolean facingRight = true;  // Dirección a la que mira la entidad
 
     /**
      * Constructor básico que inicializa la entidad con posición y dimensiones.

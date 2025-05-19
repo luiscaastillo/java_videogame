@@ -13,11 +13,6 @@ public class Platform extends Entity {
         this.height = height;
     }
 
-    // Returns the bounding box for collision detection
-    public Rectangle getBounds() {
-        return new Rectangle(x, y, width, height);
-    }
-
     // Draws the platform
     public void render(Graphics2D g2) {
         g2.setColor(Color.DARK_GRAY);
