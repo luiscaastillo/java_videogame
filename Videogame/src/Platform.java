@@ -1,6 +1,5 @@
 import java.awt.Color;
 import java.awt.Graphics2D;
-import java.awt.Rectangle;
 
 public class Platform extends Entity {
     public int x, y, width, height;
