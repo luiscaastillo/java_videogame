@@ -124,8 +124,8 @@ public class GamePanel extends JPanel implements Runnable {
 
         // Actualiza la posición de las plataformas
         // Set your desired Y range
-        int minY = 300; // minimum Y position
-        int maxY = 550; // maximum Y position
+        int minY = 350; // minimum Y position
+        int maxY = 600; // maximum Y position
 
         // When spawning a platform:
 
@@ -147,7 +147,7 @@ public class GamePanel extends JPanel implements Runnable {
         platforms.removeIf(p -> p.x + p.width < 0);
 
         // Actualiza al jugador
-        player.update(screen_height);
+        player.update(screen_height, platforms);
     }
 
     @Override

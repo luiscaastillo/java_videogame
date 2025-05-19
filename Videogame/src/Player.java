@@ -3,11 +3,9 @@ import java.awt.Image;
 import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
+import java.awt.Rectangle;
+import java.util.List;
 
-/**
- * Clase que representa al jugador en el juego.
- * Extiende la clase Entity y añade funcionalidades específicas del jugador.
- */
 public class Player extends Entity {
     private final KeyHandler keyH;
     private final Image[] runningImages = new Image[2]; // Imágenes para la animación
@@ -28,11 +26,25 @@ public class Player extends Entity {
         }
     }
 
-    public void update(int screenHeight) {
+    public void update(int screenHeight, List<Platform> platforms) {
         int floor = screenHeight - height;
 
-        // Salto
-        if (keyH.upPressed && y + height >= floor) {
+        // Platform collision
+        boolean onPlatform = false;
+        Rectangle playerBounds = new Rectangle(x, (int) (y + velocityY), width, height);
+        for (Platform p : platforms) {
+            Rectangle platBounds = p.getBounds();
+            // Check if player is falling and lands on top of the platform
+            if (velocityY >= 0 && playerBounds.intersects(platBounds) && y + height <= p.y + velocityY) {
+                y = p.y - height;
+                velocityY = 0;
+                onPlatform = true;
+                break;
+            }
+        }
+
+        // Jump
+        if (keyH.upPressed && (y + height >= floor|| onPlatform)) {
             velocityY = -15;
         }
 
@@ -40,11 +52,12 @@ public class Player extends Entity {
             velocityY = 10;
         }
 
-        // Gravedad
+        // Gravity
         super.update();
 
-        // Colisión con el suelo
-        if (y + height > floor) {
+
+        // Floor collision if not on any platform
+        if (!onPlatform && y + height > floor) {
             y = floor - height;
             velocityY = 0;
         }

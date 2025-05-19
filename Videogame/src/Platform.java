@@ -1,5 +1,7 @@
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.image.BufferedImage;
 
 public class Platform extends Entity {
     public int x, y, width, height;
@@ -16,5 +18,9 @@ public class Platform extends Entity {
     public void render(Graphics2D g2) {
         g2.setColor(Color.DARK_GRAY);
         g2.fillRect(x, y, width, height);
+    }
+
+    public Rectangle getBounds() {
+        return new Rectangle(x, y, width, height);
     }
 }
