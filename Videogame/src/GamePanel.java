@@ -37,7 +37,7 @@ public class GamePanel extends JPanel implements Runnable {
     private List<Platform> platforms = new ArrayList<>();
     private Random random = new Random();
     private int platformSpawnCounter = 0;
-    private int platformSpawnInterval = 90; // frames (1.5 seconds at 60 FPS)
+    private int platformSpawnInterval = 120; // frames (1.5 seconds at 60 FPS)
 
     // Constructor del panel del juego
     public GamePanel() {
@@ -110,6 +110,9 @@ public class GamePanel extends JPanel implements Runnable {
     // Posición del fondo
     private int backgroundX = 0;
 
+    int platWidth = tile_size * 2;
+    int platHeight = tile_size / 2;
+
     // Actualiza la lógica del juego (movimiento, colisiones, etc).
     public void update() {
         // Actualiza la posición del fondo para simular el auto-scroll
@@ -124,20 +127,16 @@ public class GamePanel extends JPanel implements Runnable {
 
         // Actualiza la posición de las plataformas
         // Set your desired Y range
-        int minY = 350; // minimum Y position
-        int maxY = 600; // maximum Y position
+        int minY = 450; // minimum Y position
+        int maxY = 550; // maximum Y position
 
         // When spawning a platform:
-
         platformSpawnCounter++;
         if (platformSpawnCounter >= platformSpawnInterval) {
             platformSpawnCounter = 0;
             // Spawn a new platform
-            int platWidth = tile_size * 3;
-            int platHeight = tile_size / 2;
-            int platX = screen_width + random.nextInt(200);
             int platY = random.nextInt(maxY - minY + 1) + minY;
-            platforms.add(new Platform(platX, platY, platWidth, platHeight));
+            platforms.add(new Platform(screen_width, platY, platWidth, platHeight, 0));
         }
 
         for (Platform p : platforms) {
@@ -165,6 +164,9 @@ public class GamePanel extends JPanel implements Runnable {
         for (Platform p : platforms) {
             p.render(g2);
         }
+
+        Platform healthBar = new Platform(20, 20, platWidth, platHeight, 1);
+        healthBar.render(g2);
 
         // Dibuja al jugador
         player.render(g2);

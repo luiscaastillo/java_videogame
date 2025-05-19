@@ -44,7 +44,7 @@ public class Player extends Entity {
         }
 
         // Jump
-        if (keyH.upPressed && (y + height >= floor|| onPlatform)) {
+        if (keyH.upPressed && (y + height >= floor||onPlatform)) {
             velocityY = -15;
         }
 

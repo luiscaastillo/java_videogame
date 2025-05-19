@@ -22,9 +22,10 @@ public class Entity {
 
     /**
      * Constructor básico que inicializa la entidad con posición y dimensiones.
-     * @param x Posición X inicial
-     * @param y Posición Y inicial
-     * @param width Ancho de la entidad
+     *
+     * @param x      Posición X inicial
+     * @param y      Posición Y inicial
+     * @param width  Ancho de la entidad
      * @param height Alto de la entidad
      */
     public Entity(int x, int y, int width, int height) {
@@ -36,6 +37,7 @@ public class Entity {
 
     /**
      * Carga la imagen de la entidad desde un archivo.
+     *
      * @param path Ruta del archivo de imagen
      */
     public void loadImage(String path) {
@@ -46,35 +48,9 @@ public class Entity {
         }
     }
 
-    /**
-     * Actualiza la lógica de la entidad (movimiento, física, etc).
-     * Este métod0 debe ser sobrescrito por las clases hijas.
-     */
     public void update() {
         // Aplica la gravedad
         velocityY += gravity;
         y += (int) velocityY;
     }
-
-    // Dibuja la entidad en el panel de juego.
-//    public void render(Graphics2D g2) {
-//        if (sprite != null) {
-//            AffineTransform transform = new AffineTransform();
-//
-//            // Aplica la transformación según la dirección
-//            if (!facingRight) {
-//                transform.translate(x + width, y);  // Posición para imagen volteada
-//                transform.scale(-1, 1);  // Voltea horizontalmente
-//            } else {
-//                transform.translate(x, y);  // Posición normal
-//            }
-//
-//            // Escala la imagen al tamaño de la entidad
-//            transform.scale((double) width / sprite.getWidth(null),
-//                    (double) height / sprite.getHeight(null));
-//
-//            // Dibuja la imagen con las transformaciones aplicadas
-//            g2.drawImage(sprite, transform, null);
-//        }
-//    }
 }
