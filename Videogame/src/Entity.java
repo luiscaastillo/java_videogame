@@ -58,28 +58,25 @@ public class Entity {
         y += (int) velocityY;
     }
 
-    /**
-     * Dibuja la entidad en el panel de juego.
-     * @param g2 Contexto gráfico para dibujar
-     */
-    public void render(Graphics2D g2) {
-        if (sprite != null) {
-            AffineTransform transform = new AffineTransform();
-
-            // Aplica la transformación según la dirección
-            if (!facingRight) {
-                transform.translate(x + width, y);  // Posición para imagen volteada
-                transform.scale(-1, 1);  // Voltea horizontalmente
-            } else {
-                transform.translate(x, y);  // Posición normal
-            }
-
-            // Escala la imagen al tamaño de la entidad
-            transform.scale((double) width / sprite.getWidth(null),
-                    (double) height / sprite.getHeight(null));
-
-            // Dibuja la imagen con las transformaciones aplicadas
-            g2.drawImage(sprite, transform, null);
-        }
-    }
+    // Dibuja la entidad en el panel de juego.
+//    public void render(Graphics2D g2) {
+//        if (sprite != null) {
+//            AffineTransform transform = new AffineTransform();
+//
+//            // Aplica la transformación según la dirección
+//            if (!facingRight) {
+//                transform.translate(x + width, y);  // Posición para imagen volteada
+//                transform.scale(-1, 1);  // Voltea horizontalmente
+//            } else {
+//                transform.translate(x, y);  // Posición normal
+//            }
+//
+//            // Escala la imagen al tamaño de la entidad
+//            transform.scale((double) width / sprite.getWidth(null),
+//                    (double) height / sprite.getHeight(null));
+//
+//            // Dibuja la imagen con las transformaciones aplicadas
+//            g2.drawImage(sprite, transform, null);
+//        }
+//    }
 }

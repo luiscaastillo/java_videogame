@@ -1,3 +1,7 @@
+// At the top of GamePanel.java
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
@@ -29,9 +33,13 @@ public class GamePanel extends JPanel implements Runnable {
     // Imágenes del juego
     private Image backgroundImage;  // Imagen de fondo
 
-    /**
-     * Constructor que inicializa el panel del juego y carga las imágenes.
-     */
+    // Lista de plataformas
+    private List<Platform> platforms = new ArrayList<>();
+    private Random random = new Random();
+    private int platformSpawnCounter = 0;
+    private int platformSpawnInterval = 90; // frames (1.5 seconds at 60 FPS)
+
+    // Constructor del panel del juego
     public GamePanel() {
         this.setPreferredSize(new Dimension(screen_width, screen_height));
         this.setBackground(Color.BLACK);
@@ -49,6 +57,9 @@ public class GamePanel extends JPanel implements Runnable {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+    public void setPlatforms(List<Platform> platforms) {
+        this.platforms = platforms;
     }
 
     /**
@@ -99,12 +110,10 @@ public class GamePanel extends JPanel implements Runnable {
     // Posición del fondo
     private int backgroundX = 0;
 
-    /**
-     * Actualiza la lógica del juego (movimiento, colisiones, etc).
-     */
+    // Actualiza la lógica del juego (movimiento, colisiones, etc).
     public void update() {
         // Actualiza la posición del fondo para simular el auto-scroll
-        // Velocidad del auto-scroll
+        // Velocidad del auto-scrollx
         int backgroundSpeed = 4;
         backgroundX -= backgroundSpeed;
 
@@ -113,7 +122,31 @@ public class GamePanel extends JPanel implements Runnable {
             backgroundX = 0;
         }
 
-        // Actualiza al jugador (solo para el salto)
+        // Actualiza la posición de las plataformas
+        // Set your desired Y range
+        int minY = 300; // minimum Y position
+        int maxY = 550; // maximum Y position
+
+        // When spawning a platform:
+
+        platformSpawnCounter++;
+        if (platformSpawnCounter >= platformSpawnInterval) {
+            platformSpawnCounter = 0;
+            // Spawn a new platform
+            int platWidth = tile_size * 3;
+            int platHeight = tile_size / 2;
+            int platX = screen_width + random.nextInt(200);
+            int platY = random.nextInt(maxY - minY + 1) + minY;
+            platforms.add(new Platform(platX, platY, platWidth, platHeight));
+        }
+
+        for (Platform p : platforms) {
+            p.x -= backgroundSpeed; // match background speed
+        }
+
+        platforms.removeIf(p -> p.x + p.width < 0);
+
+        // Actualiza al jugador
         player.update(screen_height);
     }
 
@@ -129,9 +162,13 @@ public class GamePanel extends JPanel implements Runnable {
             g2.drawImage(backgroundImage, backgroundX + screen_width, 0, this.getWidth(), this.getHeight(), this);
         }
 
+        for (Platform p : platforms) {
+            p.render(g2);
+        }
+
         // Dibuja al jugador
         player.render(g2);
-
         g2.dispose();
     }
+
 }
