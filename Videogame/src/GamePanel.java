@@ -1,6 +1,5 @@
 // At the top of GamePanel.java
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 import javax.swing.*;
 import java.awt.*;
@@ -34,7 +33,7 @@ public class GamePanel extends JPanel implements Runnable {
     private Image backgroundImage;  // Imagen de fondo
 
     // Lista de plataformas
-    private <Platform> platforms = new ArrayList<>();
+    private int <Platform> platforms = new ArrayList<>();
     private final Random random = new Random();
     private int platformSpawnCounter = 0;
 
