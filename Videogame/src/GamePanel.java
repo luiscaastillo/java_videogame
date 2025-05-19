@@ -1,5 +1,6 @@
 // At the top of GamePanel.java
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 import javax.swing.*;
 import java.awt.*;
@@ -33,9 +34,10 @@ public class GamePanel extends JPanel implements Runnable {
     private Image backgroundImage;  // Imagen de fondo
 
     // Lista de plataformas
-    private int <Platform> platforms = new ArrayList<>();
-    private final Random random = new Random();
+    private List<Platform> platforms = new ArrayList<>();
+    private Random random = new Random();
     private int platformSpawnCounter = 0;
+    private int platformSpawnInterval = 90; // frames (1.5 seconds at 60 FPS)
 
     // Constructor del panel del juego
     public GamePanel() {
@@ -55,6 +57,9 @@ public class GamePanel extends JPanel implements Runnable {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+    public void setPlatforms(List<Platform> platforms) {
+        this.platforms = platforms;
     }
 
     /**
@@ -125,8 +130,6 @@ public class GamePanel extends JPanel implements Runnable {
         // When spawning a platform:
 
         platformSpawnCounter++;
-        // frames (1.5 seconds at 60 FPS)
-        int platformSpawnInterval = 90;
         if (platformSpawnCounter >= platformSpawnInterval) {
             platformSpawnCounter = 0;
             // Spawn a new platform
