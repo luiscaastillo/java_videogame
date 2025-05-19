@@ -7,6 +7,9 @@ import javax.swing.JFrame;
 public class Main {
     public static void main(String[] args) {
         // Crear la ventana principal
+        AudioPlayer audioPlayer = new AudioPlayer();
+        audioPlayer.playBackgroundMusic("Videogame/src/Audio/416-8-bit-chiptune-instrumental-for-games-339237.mp3");
+
         JFrame window = new JFrame();
         window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);  // Cierra la aplicación al cerrar la ventana
         window.setResizable(false);  // Evita que el usuario cambie el tamaño de la ventana
