@@ -8,7 +8,7 @@ public class Main {
     public static void main(String[] args) {
         // Crear la ventana principal
         AudioPlayer audioPlayer = new AudioPlayer();
-        audioPlayer.playBackgroundMusic("Videogame/src/Audio/416-8-bit-chiptune-instrumental-for-games-339237.mp3");
+        audioPlayer.playBackgroundMusic("Videogame/src/assets/audio1.wav");
 
         JFrame window = new JFrame();
         window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);  // Cierra la aplicación al cerrar la ventana
