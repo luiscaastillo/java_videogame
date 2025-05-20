@@ -11,11 +11,15 @@ public class Player extends Entity {
     private final Image[] runningImages = new Image[2]; // Imágenes para la animación
     private int animationIndex = 0; // Índice de la imagen actual
     private int animationCounter = 0; // Contador para controlar la velocidad de animación
+    private final int originalX;
+    private final int originalY;
 
     public Player(int x, int y, int width, int height, int speed, KeyHandler keyH) {
         super(x, y, width, height);
         this.speed = speed;
         this.keyH = keyH;
+        this.originalX = x;
+        this.originalY = y;
 
         // Carga las imágenes de animación
         try {
@@ -27,7 +31,6 @@ public class Player extends Entity {
     }
 
     public void update(int screenHeight, List<Platform> platforms) {
-        int floor = screenHeight - height;
 
         // Platform collision
         boolean onPlatform = false;
@@ -44,7 +47,7 @@ public class Player extends Entity {
         }
 
         // Jump
-        if (keyH.upPressed && (y + height >= floor||onPlatform)) {
+        if (keyH.upPressed && (y + height >= screenHeight ||onPlatform)) {
             velocityY = -15;
         }
 
@@ -57,8 +60,8 @@ public class Player extends Entity {
 
 
         // Floor collision if not on any platform
-        if (!onPlatform && y + height > floor) {
-            y = floor - height;
+        if (!onPlatform && y + height> screenHeight) {
+            y = screenHeight - height;
             velocityY = 0;
         }
 
@@ -77,5 +80,10 @@ public class Player extends Entity {
         if (runningImages[animationIndex] != null) {
             g2.drawImage(runningImages[animationIndex], x, y, width, height, null);
         }
+    }
+
+    public void resetPosition() {
+        this.x = originalX;
+        this.y = originalY;
     }
 }

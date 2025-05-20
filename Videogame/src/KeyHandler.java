@@ -5,11 +5,15 @@ import java.awt.event.KeyListener;
  * Clase que maneja los eventos de teclado para controlar al jugador.
  * Implementa KeyListener para detectar cuando se presionan y sueltan teclas.
  */
+
 public class KeyHandler implements KeyListener {
 
     // Variables que indican si las teclas de dirección están presionadas
     public boolean upPressed, downPressed, leftPressed, rightPressed;
-
+    private GamePanel gamePanel;
+    public KeyHandler(GamePanel gamePanel) {
+        this.gamePanel = gamePanel;
+    }
     /**
      * Métod0 invocado cuando se tipea una tecla (no usado en este juego).
      */
@@ -23,9 +27,16 @@ public class KeyHandler implements KeyListener {
      * Actualiza las variables de dirección según la tecla presionada.
      */
     @Override
-    public void keyPressed(java.awt.event.KeyEvent e) {
-        int code = e.getKeyCode();  // Obtiene el código de la tecla presionada
-
+    public void keyPressed(KeyEvent e) {
+        int code = e.getKeyCode();
+        // Cambia el estado del juego según la tecla presionada
+        if (gamePanel.getGameState() == GameState.MENU && code == KeyEvent.VK_ENTER) {
+            gamePanel.setGameState(GameState.PLAYING);
+        } else if (gamePanel.getGameState() == GameState.PLAYING && code == KeyEvent.VK_ESCAPE) {
+            gamePanel.setGameState(GameState.PAUSED);
+        } else if (gamePanel.getGameState() == GameState.PAUSED && code == KeyEvent.VK_ESCAPE) {
+            gamePanel.setGameState(GameState.PLAYING);
+        }
         // Actualiza las variables de estado según la tecla presionada
         if (code == KeyEvent.VK_W)
             upPressed = true;

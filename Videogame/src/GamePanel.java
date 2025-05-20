@@ -24,14 +24,16 @@ public class GamePanel extends JPanel implements Runnable {
     final int screen_height = height * tile_size;  // Alto total de la pantalla en píxeles
 
     // Componentes del juego
-    KeyHandler keyH = new KeyHandler();  // Manejador de eventos de teclado
+    KeyHandler keyH = new KeyHandler(this); // Manejador de eventos de teclado
     Thread gameThread;                   // Hilo para el bucle del juego
     Player player;                       // Jugador
-
     int FPS = 60;              // Fotogramas por segundo objetivo
 
     // Imágenes del juego
     private Image backgroundImage;  // Imagen de fondo
+
+    // Estado del juego
+    private GameState gameState = GameState.MENU;
 
     // Lista de plataformas
     private List<Platform> platforms = new ArrayList<>();
@@ -45,8 +47,9 @@ public class GamePanel extends JPanel implements Runnable {
         this.setBackground(Color.BLACK);
         this.setDoubleBuffered(true);  // Mejora el rendimiento de renderizado
         this.addKeyListener(keyH);     // Añade el detector de teclas al panel
-        this.setFocusable(true);       // Permite que el panel reciba eventos de teclado
-
+        this.setFocusable(true);
+        keyH = new KeyHandler(this);// Permite que el panel reciba eventos de teclado
+        this.addKeyListener(keyH); // Añade el manejador de teclas
         // Inicializa al jugador
         player = new Player(200, 500, tile_size, tile_size, 4, keyH);
         player.loadImage("Videogame/src/assets/player.png");
@@ -58,6 +61,7 @@ public class GamePanel extends JPanel implements Runnable {
             e.printStackTrace();
         }
     }
+
     public void setPlatforms(List<Platform> platforms) {
         this.platforms = platforms;
     }
@@ -68,6 +72,15 @@ public class GamePanel extends JPanel implements Runnable {
     public void startGameThread() {
         gameThread = new Thread(this);
         gameThread.start();
+    }
+
+    // Add these methods to GamePanel
+    public GameState getGameState() {
+        return gameState;
+    }
+
+    public void setGameState(GameState gameState) {
+        this.gameState = gameState;
     }
 
     /**
@@ -92,8 +105,10 @@ public class GamePanel extends JPanel implements Runnable {
 
             // Actualiza y renderiza cuando es tiempo de un nuevo fotograma
             if (delta >= 1) {
-                update();       // Actualiza la lógica del juego
-                repaint();      // Renderiza el juego
+                if (gameState == GameState.PLAYING) {
+                    update();   // Only update game logic if playing
+                }
+                repaint();      // Always repaint to show menu or pause screen
                 delta--;
                 draw_count++;
             }
@@ -107,6 +122,8 @@ public class GamePanel extends JPanel implements Runnable {
         }
     }
 
+    private double platformSpeed = 4.0;
+
     // Posición del fondo
     private int backgroundX = 0;
 
@@ -117,8 +134,7 @@ public class GamePanel extends JPanel implements Runnable {
     public void update() {
         // Actualiza la posición del fondo para simular el auto-scroll
         // Velocidad del auto-scrollx
-        int backgroundSpeed = 4;
-        backgroundX -= backgroundSpeed;
+        backgroundX -= (int)platformSpeed;
 
         // Reinicia la posición del fondo cuando salga completamente de la pantalla
         if (backgroundX <= -screen_width) {
@@ -128,11 +144,17 @@ public class GamePanel extends JPanel implements Runnable {
         // Actualiza la posición de las plataformas
         // Set your desired Y range
         int minY = 450; // minimum Y position
-        int maxY = 550; // maximum Y position
+        int maxY = 600; // maximum Y position
 
         // When spawning a platform:
+        int maxPlatformSpawnInterval = 60;
+        // minimum spawn interval
         platformSpawnCounter++;
         if (platformSpawnCounter >= platformSpawnInterval) {
+            if (platformSpawnInterval > maxPlatformSpawnInterval) {
+                // Reduce the spawn interval to increase difficulty
+                platformSpawnInterval -= 5;
+            }
             platformSpawnCounter = 0;
             // Spawn a new platform
             int platY = random.nextInt(maxY - minY + 1) + minY;
@@ -140,37 +162,75 @@ public class GamePanel extends JPanel implements Runnable {
         }
 
         for (Platform p : platforms) {
-            p.x -= backgroundSpeed; // match background speed
+            p.x -= (int)platformSpeed;
         }
 
         platforms.removeIf(p -> p.x + p.width < 0);
 
         // Actualiza al jugador
         player.update(screen_height, platforms);
+
+
+        double maxPlatformSpeed = 20.0;
+        if (platformSpeed < maxPlatformSpeed) {
+            // Adjust for desired acceleration
+            double increment = 0.01;
+            platformSpeed += increment;
+        }
     }
 
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        Graphics2D g2 = (Graphics2D) g;
+        if (gameState == GameState.MENU) {
+            g.setFont(new Font("Arial", Font.BOLD, 50));
+            g.drawString("Press ENTER to Start", 400, 400);
+        } else if (gameState == GameState.PAUSED) {
+            g.setFont(new Font("Arial", Font.BOLD, 50));
+            g.drawString("PAUSED", 500, 400);
+            g.setFont(new Font("Arial", Font.PLAIN, 36));
+            g.drawString("Press ESC to Resume", 500, 450);
+        } else if (gameState == GameState.PLAYING) {
+            Graphics2D g2 = (Graphics2D) g;
+            // Dibuja el fondo desplazado
+            if (backgroundImage != null) {
+                // Dibuja dos copias del fondo para simular un bucle continuo
+                g2.drawImage(backgroundImage, backgroundX, 0, this.getWidth(), this.getHeight(), this);
+                g2.drawImage(backgroundImage, backgroundX + screen_width, 0, this.getWidth(), this.getHeight(), this);
+            }
 
-        // Dibuja el fondo desplazado
-        if (backgroundImage != null) {
-            // Dibuja dos copias del fondo para simular un bucle continuo
-            g2.drawImage(backgroundImage, backgroundX, 0, this.getWidth(), this.getHeight(), this);
-            g2.drawImage(backgroundImage, backgroundX + screen_width, 0, this.getWidth(), this.getHeight(), this);
+            for (Platform p : platforms) {
+                p.render(g2);
+            }
+
+            Platform healthBar = new Platform(20, 20, platWidth, platHeight, 1);
+            healthBar.render(g2);
+
+            // Dibuja al jugador
+            player.render(g2);
+            g2.dispose();
         }
+    }
 
-        for (Platform p : platforms) {
-            p.render(g2);
+    private int currentLevel = 1;
+    private final int maxLevel = 3;
+
+    // Call this when the player completes a level
+    public void nextLevel() {
+        if (currentLevel < maxLevel) {
+            currentLevel++;
+            resetLevel();
+        } else {
+            // Game completed, show win screen or credits
         }
+    }
 
-        Platform healthBar = new Platform(20, 20, platWidth, platHeight, 1);
-        healthBar.render(g2);
-
-        // Dibuja al jugador
-        player.render(g2);
-        g2.dispose();
+    // Reset or load level-specific data
+    private void resetLevel() {
+        platforms.clear();
+        player.resetPosition();
+        // Optionally load different backgrounds or platform layouts per level
+        // Example: loadLevelData(currentLevel);
     }
 
 }
