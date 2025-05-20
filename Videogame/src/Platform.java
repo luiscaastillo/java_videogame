@@ -38,11 +38,6 @@ public class Platform extends Entity {
         }
     }
 
-    // The hitbox remains unchanged:
-//    public Rectangle getBounds() {
-//        return new Rectangle(x, y, width, height);
-//    }
-
     public Rectangle getBounds() {
         return new Rectangle(x, y, width - 20, height - 50);
     }
