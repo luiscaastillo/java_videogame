@@ -36,7 +36,7 @@ public class GamePanel extends JPanel implements Runnable {
     private GameState gameState = GameState.MENU;
 
     // Lista de plataformas
-    private List<Platform> platforms = new ArrayList<>();
+    private final List<Platform> platforms = new ArrayList<>();
     private final Random random = new Random();
     private int platformSpawnCounter = 0;
     private int platformSpawnInterval = 120; // frames (1.5 seconds at 60 FPS)
