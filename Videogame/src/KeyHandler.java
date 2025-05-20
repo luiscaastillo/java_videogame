@@ -10,7 +10,7 @@ public class KeyHandler implements KeyListener {
 
     // Variables que indican si las teclas de dirección están presionadas
     public boolean upPressed, downPressed, leftPressed, rightPressed;
-    private GamePanel gamePanel;
+    private final GamePanel gamePanel;
     public KeyHandler(GamePanel gamePanel) {
         this.gamePanel = gamePanel;
     }

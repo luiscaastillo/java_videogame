@@ -62,10 +62,6 @@ public class GamePanel extends JPanel implements Runnable {
         }
     }
 
-    public void setPlatforms(List<Platform> platforms) {
-        this.platforms = platforms;
-    }
-
     /**
      * Inicia el hilo del juego para comenzar el bucle principal.
      */
