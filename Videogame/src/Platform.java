@@ -17,11 +17,13 @@ public class Platform extends Entity {
         }
     }
 
+    // Constructor
     public Platform(int x, int y, int width, int height, int type) {
         super(x, y, width, height);
         this.type = type;
     }
 
+    // Constructor para plataformas heathBar
     public void render(Graphics2D g2) {
         Image img = (type == 1) ? healthBarImage : platformImage;
         if (img != null) {

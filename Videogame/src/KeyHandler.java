@@ -1,10 +1,6 @@
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
-/**
- * Clase que maneja los eventos de teclado para controlar al jugador.
- * Implementa KeyListener para detectar cuando se presionan y sueltan teclas.
- */
 
 public class KeyHandler implements KeyListener {
 
@@ -14,21 +10,18 @@ public class KeyHandler implements KeyListener {
     public KeyHandler(GamePanel gamePanel) {
         this.gamePanel = gamePanel;
     }
-    /**
-     * Métod0 invocado cuando se tipea una tecla (no usado en este juego).
-     */
+
+    // Métod0 invocado cuando se presiona una tecla.
     @Override
     public void keyTyped(java.awt.event.KeyEvent e) {
         // No se implementa funcionalidad para este Métod0
     }
 
-    /**
-     * Métod0 invocado cuando se presiona una tecla.
-     * Actualiza las variables de dirección según la tecla presionada.
-     */
+    // Métod invocado cuando sepresiona una tecla.
     @Override
     public void keyPressed(KeyEvent e) {
         int code = e.getKeyCode();
+
         // Cambia el estado del juego según la tecla presionada
         if (gamePanel.getGameState() == GameState.MENU && code == KeyEvent.VK_ENTER) {
             gamePanel.setGameState(GameState.PLAYING);
@@ -37,6 +30,7 @@ public class KeyHandler implements KeyListener {
         } else if (gamePanel.getGameState() == GameState.PAUSED && code == KeyEvent.VK_ESCAPE) {
             gamePanel.setGameState(GameState.PLAYING);
         }
+
         // Actualiza las variables de estado según la tecla presionada
         if (code == KeyEvent.VK_W)
             upPressed = true;
@@ -48,10 +42,7 @@ public class KeyHandler implements KeyListener {
             rightPressed = true;
     }
 
-    /**
-     * Métod0 invocado cuando se suelta una tecla.
-     * Actualiza las variables de dirección cuando se deja de presionar una tecla.
-     */
+    // Métod invocado cuando se suelta una tecla.
     @Override
     public void keyReleased(java.awt.event.KeyEvent e) {
         int code = e.getKeyCode();  // Obtiene el código de la tecla liberada

@@ -118,6 +118,11 @@ public class GamePanel extends JPanel implements Runnable {
         }
     }
 
+    // Variables para el temporizador de nivel
+    private final int levelTimeLimit = 60 * FPS;
+    private int levelTimer = levelTimeLimit; // in frames
+
+    // Variables para la velocidad de la plataforma
     private double platformSpeed = 4.0;
 
     // Posición del fondo
@@ -173,21 +178,32 @@ public class GamePanel extends JPanel implements Runnable {
             double increment = 0.01;
             platformSpeed += increment;
         }
+
+        if (gameState == GameState.PLAYING) {
+            levelTimer--;
+            if (levelTimer <= 0) {
+                nextLevel();
+                levelTimer = levelTimeLimit;
+            }
+        }
     }
 
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
+        Graphics2D g2 = (Graphics2D) g;
+        g2.setColor(new Color(255, 255, 255));
         if (gameState == GameState.MENU) {
-            g.setFont(new Font("Arial", Font.BOLD, 50));
-            g.drawString("Press ENTER to Start", 400, 400);
+            g2.setFont(new Font("Cascadia Code", Font.BOLD, 40));
+            g2.drawString("Press ENTER to Start", 300, 400);
+
         } else if (gameState == GameState.PAUSED) {
-            g.setFont(new Font("Arial", Font.BOLD, 50));
-            g.drawString("PAUSED", 500, 400);
-            g.setFont(new Font("Arial", Font.PLAIN, 36));
-            g.drawString("Press ESC to Resume", 500, 450);
+            g2.setFont(new Font("Cascadia Code", Font.BOLD, 50));
+            g2.drawString("PAUSED", 300, 400);
+            g2.setFont(new Font("Cascadia Code", Font.BOLD, 44));
+            g2.drawString("Press ESC to Resume", 300, 500);
         } else if (gameState == GameState.PLAYING) {
-            Graphics2D g2 = (Graphics2D) g;
+
             // Dibuja el fondo desplazado
             if (backgroundImage != null) {
                 // Dibuja dos copias del fondo para simular un bucle continuo
@@ -199,9 +215,14 @@ public class GamePanel extends JPanel implements Runnable {
                 p.render(g2);
             }
 
-            Platform healthBar = new Platform(20, 20, platWidth, platHeight, 1);
-            healthBar.render(g2);
+//            Platform healthBar = new Platform(20, 20, platWidth, platHeight, 1);
+//            healthBar.render(g2);
 
+            // Draw timer (top left corner)
+            g2.setFont(new Font("Cascadia Code", Font.BOLD, 32));
+            g2.setColor(new Color(76, 187, 23));
+            int seconds = levelTimer / FPS;
+            g2.drawString("Time left: " + seconds + "s", 30, 50);
             // Dibuja al jugador
             player.render(g2);
             g2.dispose();
@@ -225,8 +246,8 @@ public class GamePanel extends JPanel implements Runnable {
     private void resetLevel() {
         platforms.clear();
         player.resetPosition();
+        levelTimer = levelTimeLimit;
         // Optionally load different backgrounds or platform layouts per level
-        // Example: loadLevelData(currentLevel);
     }
 
 }

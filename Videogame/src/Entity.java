@@ -3,10 +3,6 @@ import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
 
-/**
- * Clase base para todas las entidades del juego.
- * Contiene las propiedades básicas que cualquier entidad necesita.
- */
 public class Entity {
     // Posición y dimensiones
     public int x, y;                 // Coordenadas de posición en el mapa
@@ -20,14 +16,7 @@ public class Entity {
     // Imagen y dirección
     protected Image sprite;          // Imagen de la entidad
 
-    /**
-     * Constructor básico que inicializa la entidad con posición y dimensiones.
-     *
-     * @param x      Posición X inicial
-     * @param y      Posición Y inicial
-     * @param width  Ancho de la entidad
-     * @param height Alto de la entidad
-     */
+    // Constructor
     public Entity(int x, int y, int width, int height) {
         this.x = x;
         this.y = y;
@@ -35,11 +24,7 @@ public class Entity {
         this.height = 2 * height;
     }
 
-    /**
-     * Carga la imagen de la entidad desde un archivo.
-     *
-     * @param path Ruta del archivo de imagen
-     */
+    // Métod para dibujar la entidad en el panel de juego
     public void loadImage(String path) {
         try {
             sprite = ImageIO.read(new File(path));
@@ -48,6 +33,7 @@ public class Entity {
         }
     }
 
+    // Métod para dibujar la entidad en el panel de juego
     public void update() {
         // Aplica la gravedad
         velocityY += gravity;

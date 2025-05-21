@@ -14,6 +14,7 @@ public class Player extends Entity {
     private final int originalX;
     private final int originalY;
 
+
     public Player(int x, int y, int width, int height, int speed, KeyHandler keyH) {
         super(x, y, width, height);
         this.speed = speed;
