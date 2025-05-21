@@ -5,7 +5,6 @@ import java.io.IOException;
 
 public class Platform extends Entity {
     private static Image platformImage;
-    private static Image healthBarImage;
     protected final int type;
 
     static {

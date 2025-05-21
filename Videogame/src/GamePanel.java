@@ -46,8 +46,8 @@ public class GamePanel extends JPanel implements Runnable {
 
     AudioPlayer audioPlayer = new AudioPlayer();
 
-    private Rectangle playButton = new Rectangle(320, 250, 440, 90);
-    private Rectangle exitButton = new Rectangle(320, 410, 440, 90);
+    private final Rectangle playButton = new Rectangle(320, 250, 440, 90);
+    private final Rectangle exitButton = new Rectangle(320, 410, 440, 90);
 
 
     // Constructor del panel del juego
@@ -291,16 +291,17 @@ public class GamePanel extends JPanel implements Runnable {
     }
 
     private int currentLevel = 1;
-    private final int maxLevel = 3;
 
     // Call this when the player completes a level
     public void nextLevel() {
+        int maxLevel = 3;
         if (currentLevel < maxLevel) {
             currentLevel++;
             resetLevel();
-        } else {
-            // Game completed, show win screen or credits
         }
+//        else {
+//            // Game completed, show win screen or credits
+//        }
     }
 
     // Reset or load level-specific data
