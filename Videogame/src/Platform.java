@@ -10,7 +10,7 @@ public class Platform extends Entity {
     static {
         try {
             platformImage = ImageIO.read(new File("Videogame/src/assets/platform.png"));
-            healthBarImage = ImageIO.read(new File("Videogame/src/assets/healthBar.png"));
+//            healthBarImage = ImageIO.read(new File("Videogame/src/assets/healthBar.png"));
         } catch (IOException e) {
             e.printStackTrace();
         }
