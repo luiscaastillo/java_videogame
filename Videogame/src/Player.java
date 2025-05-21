@@ -83,6 +83,10 @@ public class Player extends Entity {
         }
     }
 
+    public boolean isOnFloor(int screenHeight) {
+        return y + height >= screenHeight;
+    }
+
     public void resetPosition() {
         this.x = originalX;
         this.y = originalY;

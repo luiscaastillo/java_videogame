@@ -23,7 +23,7 @@ public class KeyHandler implements KeyListener {
         int code = e.getKeyCode();
 
         // Cambia el estado del juego según la tecla presionada
-        if (gamePanel.getGameState() == GameState.MENU && code == KeyEvent.VK_ENTER) {
+        if ((gamePanel.getGameState() == GameState.MENU|| gamePanel.getGameState() == GameState.GAME_OVER) && code == KeyEvent.VK_ENTER) {
             gamePanel.setGameState(GameState.PLAYING);
         } else if (gamePanel.getGameState() == GameState.PLAYING && code == KeyEvent.VK_ESCAPE) {
             gamePanel.setGameState(GameState.PAUSED);

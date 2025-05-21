@@ -6,7 +6,7 @@ import java.io.IOException;
 public class Platform extends Entity {
     private static Image platformImage;
     private static Image healthBarImage;
-    private final int type;
+    protected final int type;
 
     static {
         try {
@@ -25,7 +25,7 @@ public class Platform extends Entity {
 
     // Constructor para plataformas heathBar
     public void render(Graphics2D g2) {
-        Image img = (type == 1) ? healthBarImage : platformImage;
+        Image img = platformImage;
         if (img != null) {
             int stretchW = 150; // pixels to stretch horizontally (total)
             int stretchH = 40; // pixels to stretch vertically (upwards)

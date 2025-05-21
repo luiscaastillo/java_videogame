@@ -39,8 +39,9 @@ public class GamePanel extends JPanel implements Runnable {
     private final List<Platform> platforms = new ArrayList<>();
     private final Random random = new Random();
     private int platformSpawnCounter = 0;
-    private int platformSpawnInterval = 120; // frames (1.5 seconds at 60 FPS)
+    private int platformSpawnInterval = 90;
 
+    AudioPlayer audioPlayer = new AudioPlayer();
     // Constructor del panel del juego
     public GamePanel() {
         this.setPreferredSize(new Dimension(screen_width, screen_height));
@@ -132,10 +133,17 @@ public class GamePanel extends JPanel implements Runnable {
     int platHeight = tile_size / 2;
 
     // Actualiza la lógica del juego (movimiento, colisiones, etc).
+    boolean iniNivel = true;
+
     public void update() {
         // Actualiza la posición del fondo para simular el auto-scroll
         // Velocidad del auto-scrollx
-        backgroundX -= (int)platformSpeed;
+        if (iniNivel) {
+            platforms.add(new Platform(0, 650, 2 * platWidth, platHeight, 1));
+            backgroundX -= (int) platformSpeed;
+            iniNivel = false;
+            audioPlayer.playBackgroundMusic("Videogame/src/assets/audio3.wav");
+        }
 
         // Reinicia la posición del fondo cuando salga completamente de la pantalla
         if (backgroundX <= -screen_width) {
@@ -163,14 +171,22 @@ public class GamePanel extends JPanel implements Runnable {
         }
 
         for (Platform p : platforms) {
-            p.x -= (int)platformSpeed;
+            if (p.type == 1) {
+                p.x -= (int)platformSpeed/4; // Move floor slower
+            } else {
+                p.x -= (int)platformSpeed;
+            }
         }
 
         platforms.removeIf(p -> p.x + p.width < 0);
 
         // Actualiza al jugador
         player.update(screen_height, platforms);
-
+        if (player.isOnFloor(screen_height)) {
+            // Player has fallen off the screen
+            audioPlayer.stop();
+            gameState = GameState.GAME_OVER;
+        }
 
         double maxPlatformSpeed = 20.0;
         if (platformSpeed < maxPlatformSpeed) {
@@ -185,6 +201,10 @@ public class GamePanel extends JPanel implements Runnable {
                 nextLevel();
                 levelTimer = levelTimeLimit;
             }
+        }
+
+        if (gameState == GameState.GAME_OVER) {
+            resetLevel();
         }
     }
 
@@ -202,6 +222,15 @@ public class GamePanel extends JPanel implements Runnable {
             g2.drawString("PAUSED", 300, 400);
             g2.setFont(new Font("Cascadia Code", Font.BOLD, 44));
             g2.drawString("Press ESC to Resume", 300, 500);
+
+        } else if (gameState == GameState.GAME_OVER) {
+            g2.setFont(new Font("Cascadia Code", Font.BOLD, 60));
+            g2.setColor(Color.RED);
+            g2.drawString("GAME OVER", 350, 350);
+            g2.setFont(new Font("Cascadia Code", Font.BOLD, 32));
+            g2.setColor(Color.WHITE);
+            g2.drawString("Press ENTER to Restart", 300, 400);
+
         } else if (gameState == GameState.PLAYING) {
 
             // Dibuja el fondo desplazado
@@ -247,7 +276,8 @@ public class GamePanel extends JPanel implements Runnable {
         platforms.clear();
         player.resetPosition();
         levelTimer = levelTimeLimit;
-        // Optionally load different backgrounds or platform layouts per level
+        // Add a starting platform at the left edge, at floor height
+        iniNivel = true;
     }
 
 }
