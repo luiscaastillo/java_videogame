@@ -5,7 +5,7 @@ import java.awt.event.KeyListener;
 public class KeyHandler implements KeyListener {
 
     // Variables que indican si las teclas de dirección están presionadas
-    public boolean upPressed, downPressed, leftPressed, rightPressed;
+    public boolean upPressed, downPressed, leftPressed, rightPressed, escapePressed;
     private final GamePanel gamePanel;
     public KeyHandler(GamePanel gamePanel) {
         this.gamePanel = gamePanel;
@@ -25,12 +25,7 @@ public class KeyHandler implements KeyListener {
         // Cambia el estado del juego según la tecla presionada
         if ((gamePanel.getGameState() == GameState.MENU|| gamePanel.getGameState() == GameState.GAME_OVER) && code == KeyEvent.VK_ENTER) {
             gamePanel.setGameState(GameState.PLAYING);
-        } else if (gamePanel.getGameState() == GameState.PLAYING && code == KeyEvent.VK_ESCAPE) {
-            gamePanel.setGameState(GameState.PAUSED);
-        } else if (gamePanel.getGameState() == GameState.PAUSED && code == KeyEvent.VK_ESCAPE) {
-            gamePanel.setGameState(GameState.PLAYING);
         }
-
         // Actualiza las variables de estado según la tecla presionada
         if (code == KeyEvent.VK_W)
             upPressed = true;
@@ -40,6 +35,9 @@ public class KeyHandler implements KeyListener {
             downPressed = true;
         if (code == KeyEvent.VK_D)
             rightPressed = true;
+        if (code == KeyEvent.VK_ESCAPE) {
+            escapePressed = true;
+        }
     }
 
     // Métod invocado cuando se suelta una tecla.
@@ -56,5 +54,8 @@ public class KeyHandler implements KeyListener {
             downPressed = false;
         if (code == KeyEvent.VK_D)
             rightPressed = false;
+        if (code == KeyEvent.VK_ESCAPE) {
+            escapePressed = false;
+        }
     }
 }

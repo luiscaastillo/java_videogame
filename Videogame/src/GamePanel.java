@@ -1,4 +1,6 @@
 // At the top of GamePanel.java
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -31,6 +33,7 @@ public class GamePanel extends JPanel implements Runnable {
 
     // Imágenes del juego
     private Image backgroundImage;  // Imagen de fondo
+    private Image pauseImage;      // Imagen de pausa
 
     // Estado del juego
     private GameState gameState = GameState.MENU;
@@ -42,6 +45,11 @@ public class GamePanel extends JPanel implements Runnable {
     private int platformSpawnInterval = 90;
 
     AudioPlayer audioPlayer = new AudioPlayer();
+
+    private Rectangle playButton = new Rectangle(320, 250, 440, 90);
+    private Rectangle exitButton = new Rectangle(320, 410, 440, 90);
+
+
     // Constructor del panel del juego
     public GamePanel() {
         this.setPreferredSize(new Dimension(screen_width, screen_height));
@@ -58,9 +66,24 @@ public class GamePanel extends JPanel implements Runnable {
         // Carga la imagen de fondo
         try {
             backgroundImage = ImageIO.read(new File("Videogame/src/assets/background.png"));
+            pauseImage = ImageIO.read(new File("Videogame/src/assets/pause.png"));
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        this.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                Point p = e.getPoint();
+                if (gameState == GameState.MENU ||gameState == GameState.PAUSED) {
+                    if (playButton.contains(p)) {
+                        setGameState(GameState.PLAYING);
+                    } else if (exitButton.contains(p)) {
+                        System.exit(0);
+                    }
+                }
+            }
+        });
     }
 
     /**
@@ -195,12 +218,23 @@ public class GamePanel extends JPanel implements Runnable {
             platformSpeed += increment;
         }
 
+        if (gameState == GameState.PAUSED) {
+            // Pausa el juego
+            if (keyH.upPressed) {
+                gameState = GameState.PLAYING;
+            }
+        }
+
         if (gameState == GameState.PLAYING) {
             levelTimer--;
             if (levelTimer <= 0) {
                 nextLevel();
                 levelTimer = levelTimeLimit;
             }
+        }
+
+        if(keyH.escapePressed) {
+            gameState = GameState.PAUSED;
         }
 
         if (gameState == GameState.GAME_OVER) {
@@ -218,11 +252,9 @@ public class GamePanel extends JPanel implements Runnable {
             g2.drawString("Press ENTER to Start", 300, 400);
 
         } else if (gameState == GameState.PAUSED) {
-            g2.setFont(new Font("Cascadia Code", Font.BOLD, 50));
-            g2.drawString("PAUSED", 300, 400);
-            g2.setFont(new Font("Cascadia Code", Font.BOLD, 44));
-            g2.drawString("Press ESC to Resume", 300, 500);
-
+            g2.drawImage(pauseImage, backgroundX, 0, this.getWidth(), this.getHeight(), this);
+//            g2.fill(exitButton);
+//            g2.fill(playButton);
         } else if (gameState == GameState.GAME_OVER) {
             g2.setFont(new Font("Cascadia Code", Font.BOLD, 60));
             g2.setColor(Color.RED);
@@ -276,8 +308,8 @@ public class GamePanel extends JPanel implements Runnable {
         platforms.clear();
         player.resetPosition();
         levelTimer = levelTimeLimit;
-        // Add a starting platform at the left edge, at floor height
         iniNivel = true;
+        audioPlayer.stop();
     }
 
 }
