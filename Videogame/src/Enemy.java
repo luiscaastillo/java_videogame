@@ -34,9 +34,9 @@ public class Enemy extends Entity {
     public void update() {
         if (player != null) {
             if (player.x < this.x) {
-                this.x -= speed;
+                this.x -= speed/2;
             } else if (player.x > this.x) {
-                this.x += speed;
+                this.x += speed/2;
             }
         }
 
@@ -46,14 +46,6 @@ public class Enemy extends Entity {
         if (animationCounter >= animationSpeed) {
             animationCounter = 0;
             animationIndex = (animationIndex + 1) % runningImages.length; // Alterna entre 0 y 1
-        }
-
-        // Shooting logic
-        shootCounter++;
-        int shootInterval = 90;
-        if (shootCounter >= shootInterval) {
-//            shoot();
-            shootCounter = 0;
         }
 
         lifetime++;

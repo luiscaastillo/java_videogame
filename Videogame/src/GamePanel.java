@@ -196,7 +196,7 @@ public class GamePanel extends JPanel implements Runnable {
     }
 
     // Variables para el temporizador de nivel
-    private final int levelTimeLimit = 60 * FPS;
+    private final int levelTimeLimit = 30 * FPS;
     private int levelTimer = levelTimeLimit; // in frames
 
     private int level2EnemySpawnCounter = 0;
@@ -224,7 +224,7 @@ public class GamePanel extends JPanel implements Runnable {
         player.update(screen_height, platforms);
 
         // frames (2 seconds at 60 FPS)
-        int level2EnemySpawnInterval = 90;
+        int level2EnemySpawnInterval = 120;
         switch (gameState) {
             case PLAYING_LEVEL3:
             if (startLevel3) {
