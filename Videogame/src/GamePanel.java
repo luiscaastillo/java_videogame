@@ -35,6 +35,7 @@ public class GamePanel extends JPanel implements Runnable {
     private Image backgroundImage;  // Imagen de fondo
     private Image pauseImage;      // Imagen de pausa
     private Image gameOverImage;   // Imagen de Game Over
+    private Image winImage;        // Imagen de victoria
 
     // Estado del juego
     private GameState gameState = GameState.MENU;
@@ -55,6 +56,9 @@ public class GamePanel extends JPanel implements Runnable {
     private final Rectangle playGOverButton = new Rectangle(200, 460, 660, 110);
     private final Rectangle exitGOverButton = new Rectangle(340, 590, 370, 60);
 
+    // Botones de win
+    private final Rectangle winButton = new Rectangle(0, 0, screen_width, screen_height);
+
     // Constructor del panel del juego
     public GamePanel() {
         this.setPreferredSize(new Dimension(screen_width, screen_height));
@@ -73,6 +77,7 @@ public class GamePanel extends JPanel implements Runnable {
             backgroundImage = ImageIO.read(new File("Videogame/src/assets/background.png"));
             pauseImage = ImageIO.read(new File("Videogame/src/assets/pause.png"));
             gameOverImage = ImageIO.read(new File("Videogame/src/assets/game_over.png"));
+            winImage = ImageIO.read(new File("Videogame/src/assets/win.png"));
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -94,6 +99,11 @@ public class GamePanel extends JPanel implements Runnable {
                         setGameState(GameState.PLAYING);
                     } else if (exitGOverButton.contains(p)) {
                         System.exit(0);
+                    }
+                } else if (gameState == GameState.WIN) {
+                    if (winButton.contains(p)) {
+                        setGameState(GameState.MENU);
+                        resetLevel();
                     }
                 }
             }
@@ -157,7 +167,7 @@ public class GamePanel extends JPanel implements Runnable {
     }
 
     // Variables para el temporizador de nivel
-    private final int levelTimeLimit = 60 * FPS;
+    private final int levelTimeLimit = 5 * FPS;
     private int levelTimer = levelTimeLimit; // in frames
 
     // Variables para la velocidad de la plataforma
@@ -242,8 +252,8 @@ public class GamePanel extends JPanel implements Runnable {
         if (gameState == GameState.PLAYING) {
             levelTimer--;
             if (levelTimer <= 0) {
-                nextLevel();
-                levelTimer = levelTimeLimit;
+                setGameState(GameState.WIN);
+                audioPlayer.stop();
             }
         }
 
@@ -274,7 +284,10 @@ public class GamePanel extends JPanel implements Runnable {
 //            g2.fill(exitGOverButton);
 //            g2.fill(playGOverButton);
 
-        } else if (gameState == GameState.PLAYING) {
+        } else if (gameState == GameState.WIN) {
+            g2.drawImage(winImage, backgroundX, 0, this.getWidth(), this.getHeight(), this);
+        }
+        else if (gameState == GameState.PLAYING) {
 
             // Dibuja el fondo desplazado
             if (backgroundImage != null) {
