@@ -13,14 +13,16 @@ public class Player extends Entity {
     private int animationCounter = 0; // Contador para controlar la velocidad de animación
     private final int originalX;
     private final int originalY;
+    private final GamePanel gamePanel;
+    protected boolean facingRight = true;
 
-
-    public Player(int x, int y, int width, int height, int speed, KeyHandler keyH) {
+    public Player(int x, int y, int width, int height, int speed, KeyHandler keyH, GamePanel gamePanel) {
         super(x, y, width, height);
         this.speed = speed;
         this.keyH = keyH;
         this.originalX = x;
         this.originalY = y;
+        this.gamePanel = gamePanel;
 
         // Carga las imágenes de animación
         try {
@@ -47,6 +49,17 @@ public class Player extends Entity {
             }
         }
 
+        if (gamePanel.getGameState() != GameState.PLAYING_LEVEL3) {
+            // Move left
+            if (keyH.leftPressed) {
+                x -= speed;
+            }
+            // Move right
+            if (keyH.rightPressed) {
+                x += speed;
+            }
+        }
+
         // Jump
         if (keyH.upPressed && (y + height >= screenHeight ||onPlatform)) {
             velocityY = -15;
@@ -66,20 +79,48 @@ public class Player extends Entity {
             velocityY = 0;
         }
 
-        // Actualiza la animación
-        animationCounter++;
-        // Velocidad de cambio de imagen
-        int animationSpeed = 10;
-        if (animationCounter >= animationSpeed) {
-            animationCounter = 0;
-            animationIndex = (animationIndex + 1) % runningImages.length; // Alterna entre 0 y 1
+        if (gamePanel.getGameState() == GameState.PLAYING_LEVEL3) {
+            // Actualiza la animación
+            animationCounter++;
+            // Velocidad de cambio de imagen
+            int animationSpeed = 10;
+            if (animationCounter >= animationSpeed) {
+                animationCounter = 0;
+                animationIndex = (animationIndex + 1) % runningImages.length; // Alterna entre 0 y 1
+            }
+        }
+
+        if (gamePanel.getGameState() != GameState.PLAYING_LEVEL3) {
+            if (keyH.leftPressed) {
+                x -= speed;
+                facingRight = false;
+            }
+            if (keyH.rightPressed) {
+                x += speed;
+                facingRight = true;
+            }
+        }
+
+        // Animation only when moving left or right
+        if (gamePanel.getGameState() != GameState.PLAYING_LEVEL3 && (keyH.leftPressed || keyH.rightPressed)) {
+            animationCounter++;
+            int animationSpeed = 10;
+            if (animationCounter >= animationSpeed) {
+                animationCounter = 0;
+                animationIndex = (animationIndex + 1) % runningImages.length;
+            }
         }
     }
 
     public void render(Graphics2D g2) {
         // Dibuja la imagen actual de la animación
         if (runningImages[animationIndex] != null) {
-            g2.drawImage(runningImages[animationIndex], x, y, width, height, null);
+            if (facingRight) {
+                g2.drawImage(runningImages[animationIndex], x, y, width, height, null);
+            } else {
+                // Flip horizontally
+                g2.drawImage(runningImages[animationIndex], x + width, y, -width, height, null);
+            }
         }
     }
 

@@ -24,7 +24,7 @@ public class KeyHandler implements KeyListener {
 
         // Cambia el estado del juego según la tecla presionada
         if ((gamePanel.getGameState() == GameState.MENU|| gamePanel.getGameState() == GameState.GAME_OVER) && code == KeyEvent.VK_ENTER) {
-            gamePanel.setGameState(GameState.PLAYING);
+            gamePanel.setGameState(GameState.PLAYING_LEVEL3);
         }
 
         // Actualiza las variables de estado según la tecla presionada

@@ -25,6 +25,8 @@ public class GamePanel extends JPanel implements Runnable {
     final int screen_width = width * tile_size;    // Ancho total de la pantalla en píxeles
     final int screen_height = height * tile_size;  // Alto total de la pantalla en píxeles
 
+    GameState currGameState = GameState.MENU;
+
     // Componentes del juego
     KeyHandler keyH = new KeyHandler(this); // Manejador de eventos de teclado
     Thread gameThread;                   // Hilo para el bucle del juego
@@ -32,7 +34,8 @@ public class GamePanel extends JPanel implements Runnable {
     int FPS = 60;              // Fotogramas por segundo objetivo
 
     // Imágenes del juego
-    private Image backgroundImage;  // Imagen de fondo
+    private Image level1Image;  // Imagen de fondo
+    private Image level2Image;  // Imagen de fondo
     private Image menuImage;        // Imagen del menú
     private Image pauseImage;      // Imagen de pausa
     private Image gameOverImage;   // Imagen de Game Over
@@ -64,7 +67,7 @@ public class GamePanel extends JPanel implements Runnable {
     private final Rectangle helpPauseButton = new Rectangle(320, 410, 440, 90);
 
     // Botones del game over
-    private final Rectangle playGOverButton = new Rectangle(200, 460, 660, 110);
+    private final Rectangle replayButton = new Rectangle(200, 460, 660, 110);
     private final Rectangle menuGOverButton = new Rectangle(200, 300, 660, 110);
     private final Rectangle exitGOverButton = new Rectangle(340, 590, 370, 60);
 
@@ -81,12 +84,13 @@ public class GamePanel extends JPanel implements Runnable {
         keyH = new KeyHandler(this);// Permite que el panel reciba eventos de teclado
         this.addKeyListener(keyH); // Añade el manejador de teclas
         // Inicializa al jugador
-        player = new Player(200, 500, tile_size, tile_size, 4, keyH);
+        player = new Player(200, 500, tile_size, tile_size, 4, keyH, this);
         player.loadImage("Videogame/src/assets/player.png");
 
         // Carga la imagen de fondo
         try {
-            backgroundImage = ImageIO.read(new File("Videogame/src/assets/background.png"));
+            level1Image = ImageIO.read(new File("Videogame/src/assets/level3.png"));
+            level2Image = ImageIO.read(new File("Videogame/src/assets/level2.png"));
             pauseImage = ImageIO.read(new File("Videogame/src/assets/pause.png"));
             menuImage = ImageIO.read(new File("Videogame/src/assets/menu.png"));
             gameOverImage = ImageIO.read(new File("Videogame/src/assets/game_over.png"));
@@ -100,30 +104,34 @@ public class GamePanel extends JPanel implements Runnable {
             @Override
             public void mouseClicked(MouseEvent e) {
                 Point p = e.getPoint();
+//                Menu
                 if (gameState == GameState.MENU){
                     if (playMenuButton.contains(p)) {
                         resetLevel();
-                        setGameState(GameState.PLAYING);
+                        setGameState(GameState.PLAYING_LEVEL2);
                     } else if (exitMenuButton.contains(p)) {
                         System.exit(0);
                     }
                 }
+//                Pausa
                 if (gameState == GameState.PAUSED) {
                     if (playPauseButton.contains(p)) {
-                        setGameState(GameState.PLAYING);
+                        setGameState(currGameState);
                     } else if (exitPauseButton.contains(p)) {
                         System.exit(0);
                     }
+//                    Game Over
                 } else if (gameState == GameState.GAME_OVER) {
-                    if (playGOverButton.contains(p)) {
+                    if (replayButton.contains(p)) {
                         resetLevel();
-                        setGameState(GameState.PLAYING);
+                        setGameState(currGameState);
                     } else if (exitGOverButton.contains(p)) {
                         System.exit(0);
                     } else if (menuGOverButton.contains(p)) {
                         resetLevel();
                         setGameState(GameState.MENU);
                     }
+//                    Win
                 } else if (gameState == GameState.WIN) {
                     if (winButton.contains(p)) {
                         setGameState(GameState.MENU);
@@ -169,7 +177,7 @@ public class GamePanel extends JPanel implements Runnable {
 
             // Actualiza y renderiza cuando es tiempo de un nuevo fotograma
             if (delta >= 1) {
-                if (gameState == GameState.PLAYING) {
+                if (gameState == GameState.PLAYING_LEVEL3 || gameState == GameState.PLAYING_LEVEL2) {
                     update();   // Only update game logic if playing
                 }
                 repaint();      // Always repaint to show menu or pause screen
@@ -190,6 +198,10 @@ public class GamePanel extends JPanel implements Runnable {
     private final int levelTimeLimit = 10 * FPS;
     private int levelTimer = levelTimeLimit; // in frames
 
+    private int level2EnemySpawnCounter = 0;
+    private final int level2EnemySpawnInterval = 120; // frames (2 seconds at 60 FPS)
+
+
     // Variables para la velocidad de la plataforma
     private double platformSpeed = 4.0;
 
@@ -200,173 +212,185 @@ public class GamePanel extends JPanel implements Runnable {
     int platHeight = tile_size / 2;
 
     // Actualiza la lógica del juego (movimiento, colisiones, etc).
-    boolean iniNivel = true;
+    boolean startLevel3 = true;
 
     public void update() {
         // Actualiza la posición del fondo para simular el auto-scroll
-        // Velocidad del auto-scrollx
-        if (iniNivel) {
-            platforms.add(new Platform(0, 650, 2 * platWidth, platHeight, 1));
-            backgroundX -= (int) platformSpeed;
-            iniNivel = false;
-            audioPlayer.playBackgroundMusic("Videogame/src/assets/audio3.wav");
-        }
-
-        // Reinicia la posición del fondo cuando salga completamente de la pantalla
-        if (backgroundX <= -screen_width) {
-            backgroundX = 0;
-        }
-
-        // Actualiza la posición de las plataformas
-        // Set your desired Y range
-        int minY = 450; // minimum Y position
-        int maxY = 600; // maximum Y position
-
-        // When spawning a platform:
-        int maxPlatformSpawnInterval = 60;
-        // minimum spawn interval
-        platformSpawnCounter++;
-        if (platformSpawnCounter >= platformSpawnInterval) {
-            if (platformSpawnInterval > maxPlatformSpawnInterval) {
-                // Reduce the spawn interval to increase difficulty
-                platformSpawnInterval -= 5;
-            }
-            platformSpawnCounter = 0;
-            // Spawn a new platform
-            int platY = random.nextInt(maxY - minY + 1) + minY;
-            platforms.add(new Platform(screen_width, platY, platWidth, platHeight, 0));
-            platformsSinceLastEnemy++;
-            if (platformsSinceLastEnemy >= enemySpawnInterval) {
-                // Place enemy on the new platform
-                Platform lastPlat = platforms.getLast();
-                Enemy enemy = new Enemy(lastPlat.x + lastPlat.width / 2 - 20, lastPlat.y - 40,  40, 40);
-                enemy.setPlayer(player); // so it can shoot at the player
-                enemies.add(enemy);
-                platformsSinceLastEnemy = 0;
-            }
-
-        }
-
-        for (Platform p : platforms) {
-            if (p.type == 1) {
-                p.x -= (int)platformSpeed/4; // Move floor slower
-            } else {
-                p.x -= (int)platformSpeed;
-            }
-        }
-
-        for (Enemy e : enemies) {
-            e.update();
-        }
-
-        platforms.removeIf(p -> p.x + p.width < 0);
-
-        // Actualiza al jugador
+        // Velocidad del auto-scroll
         player.update(screen_height, platforms);
-        if (player.isOnFloor(screen_height)) {
-            // Player has fallen off the screen
-            audioPlayer.stop();
-            gameState = GameState.GAME_OVER;
-        }
 
-        double maxPlatformSpeed = 20.0;
-        if (platformSpeed < maxPlatformSpeed) {
-            // Adjust for desired acceleration
-            double increment = 0.01;
-            platformSpeed += increment;
-        }
-
-        if (gameState == GameState.PAUSED) {
-            // Pausa el juego
-            if (keyH.upPressed) {
-                gameState = GameState.PLAYING;
+        switch (gameState) {
+            case PLAYING_LEVEL3:
+            if (startLevel3) {
+                platforms.add(new Platform(0, 650, 2 * platWidth, platHeight, 1));
+                backgroundX -= (int) platformSpeed;
+                startLevel3 = false;
+                audioPlayer.playBackgroundMusic("Videogame/src/assets/audio3.wav");
             }
+
+            // Reinicia la posición del fondo cuando salga completamente de la pantalla
+            if (backgroundX <= -screen_width) {
+                backgroundX = 0;
+            }
+
+            // Actualiza la posición de las plataformas
+            // Set your desired Y range
+            int minY = 450; // minimum Y position
+            int maxY = 600; // maximum Y position
+
+            // When spawning a platform:
+            int maxPlatformSpawnInterval = 60;
+            // minimum spawn interval
+            platformSpawnCounter++;
+            if (platformSpawnCounter >= platformSpawnInterval) {
+                if (platformSpawnInterval > maxPlatformSpawnInterval) {
+                    // Reduce the spawn interval to increase difficulty
+                    platformSpawnInterval -= 5;
+                }
+                platformSpawnCounter = 0;
+                // Spawn a new platform
+                int platY = random.nextInt(maxY - minY + 1) + minY;
+                platforms.add(new Platform(screen_width, platY, platWidth, platHeight, 0));
+                platformsSinceLastEnemy++;
+                if (platformsSinceLastEnemy >= enemySpawnInterval) {
+                    // Place enemy on the new platform
+                    Platform lastPlat = platforms.getLast();
+                    Enemy enemy = new Enemy(lastPlat.x + lastPlat.width / 2 - 20, lastPlat.y - 40, 40, 40);
+                    enemy.setPlayer(player); // so it can shoot at the player
+                    enemies.add(enemy);
+                    platformsSinceLastEnemy = 0;
+                }
+
+            }
+
+            for (Platform p : platforms) {
+                if (p.type == 1) {
+                    p.x -= (int) platformSpeed / 4; // Move floor slower
+                } else {
+                    p.x -= (int) platformSpeed;
+                }
+            }
+
+            platforms.removeIf(p -> p.x + p.width < 0);
+
+            // Actualiza al jugador
+            if (player.isOnFloor(screen_height)) {
+                // Player has fallen off the screen
+                audioPlayer.stop();
+                gameState = GameState.GAME_OVER;
+            }
+
+            double maxPlatformSpeed = 20.0;
+            if (platformSpeed < maxPlatformSpeed) {
+                // Adjust for desired acceleration
+                double increment = 0.01;
+                platformSpeed += increment;
+            }
+
+            break;
+            case PLAYING_LEVEL2:
+                // Example: spawn an enemy every interval with 50% chance
+                level2EnemySpawnCounter++;
+                if (level2EnemySpawnCounter >= level2EnemySpawnInterval) {
+                    level2EnemySpawnCounter = 0;
+                    if (random.nextBoolean()) { // 50% chance
+                        int enemyX = random.nextInt(screen_width - 40);
+                        int enemyY = random.nextInt(screen_height / 2) + screen_height / 2 - 100;
+                        enemies.add(new Enemy(enemyX, enemyY, 40, 40));
+                    }
+                }
+                // Update existing enemies if needed
+                for (Enemy e : enemies) {
+                    e.update();
+                }
+                break;
         }
 
-        if (gameState == GameState.PLAYING) {
+        if (gameState == GameState.PLAYING_LEVEL3 || gameState == GameState.PLAYING_LEVEL2) {
             levelTimer--;
             if (levelTimer <= 0) {
-                setGameState(GameState.WIN);
-                audioPlayer.stop();
+                switch (gameState) {
+                    case PLAYING_LEVEL2:
+                        setGameState(GameState.PLAYING_LEVEL3);
+                        break;
+                    case PLAYING_LEVEL3:
+                        setGameState(GameState.WIN);
+                        break;
+                }
+                resetLevel();
             }
         }
 
         if(keyH.escapePressed) {
+            currGameState = gameState;
             gameState = GameState.PAUSED;
         }
 
         if (gameState == GameState.GAME_OVER) {
             resetLevel();
         }
+
     }
 
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
+        int seconds = levelTimer / FPS;
         Graphics2D g2 = (Graphics2D) g;
         g2.setColor(new Color(255, 255, 255));
-        if (gameState == GameState.MENU) {
-            g2.drawImage(menuImage, backgroundX, 0, this.getWidth(), this.getHeight(), this);
-//            g2.fill(playMenuButton);
-//            g2.fill(exitMenuButton);
+        switch (gameState) {
+            case MENU:
+                g2.drawImage(menuImage, backgroundX, 0, this.getWidth(), this.getHeight(), this);
+                // g2.fill(playMenuButton);
+                // g2.fill(exitMenuButton);
+                break;
+            case PAUSED:
+                g2.drawImage(pauseImage, backgroundX, 0, this.getWidth(), this.getHeight(), this);
+                // g2.fill(exitPauseButton);
+                // g2.fill(playPauseButton);
+                break;
+            case GAME_OVER:
+                g2.drawImage(gameOverImage, backgroundX, 0, this.getWidth(), this.getHeight(), this);
+                // g2.fill(exitGOverButton);
+                // g2.fill(replayButton);
+                // g2.fill(menuGOverButton);
+                break;
+            case WIN:
+                g2.drawImage(winImage, backgroundX, 0, this.getWidth(), this.getHeight(), this);
+                break;
+            case PLAYING_LEVEL3:
+                g2.drawImage(level1Image, backgroundX, 0, this.getWidth(), this.getHeight(), this);
+                for (Platform p : platforms) {
+                    p.render(g2);
+                }
+                // Draw timer (top left corner)
+                g2.setFont(new Font("Cascadia Code", Font.BOLD, 32));
+                g2.setColor(new Color(76, 187, 23));
+                g2.drawString("Time left: " + seconds + "s", 30, 50);
+                // Dibuja al jugador
+                player.render(g2);
 
-        } else if (gameState == GameState.PAUSED) {
-            g2.drawImage(pauseImage, backgroundX, 0, this.getWidth(), this.getHeight(), this);
-//            g2.fill(exitPauseButton);
-//            g2.fill(playPauseButton);
-        } else if (gameState == GameState.GAME_OVER) {
-            g2.drawImage(gameOverImage, backgroundX, 0, this.getWidth(), this.getHeight(), this);
-//            g2.fill(exitGOverButton);
-//            g2.fill(playGOverButton);
-//            g2.fill(menuGOverButton);
+                for (Enemy e : enemies) {
+                    e.render(g2);
+                }
 
-        } else if (gameState == GameState.WIN) {
-            g2.drawImage(winImage, backgroundX, 0, this.getWidth(), this.getHeight(), this);
-        }
-        else if (gameState == GameState.PLAYING) {
-
-            // Dibuja el fondo desplazado
-            if (backgroundImage != null) {
-                // Dibuja dos copias del fondo para simular un bucle continuo
-                g2.drawImage(backgroundImage, backgroundX, 0, this.getWidth(), this.getHeight(), this);
-                g2.drawImage(backgroundImage, backgroundX + screen_width, 0, this.getWidth(), this.getHeight(), this);
-            }
-
-            for (Platform p : platforms) {
-                p.render(g2);
-            }
+                break;
+            case PLAYING_LEVEL2:
+                g2.drawImage(level2Image, backgroundX, 0, this.getWidth(), this.getHeight(), this);
+                player.render(g2);
+                g2.setFont(new Font("Cascadia Code", Font.BOLD, 32));
+                g2.setColor(new Color(255, 87, 23));
+                g2.drawString("Time left: " + seconds + "s", 30, 50);
 
 //            Platform healthBar = new Platform(20, 20, platWidth, platHeight, 1);
 //            healthBar.render(g2);
 
-            // Draw timer (top left corner)
-            g2.setFont(new Font("Cascadia Code", Font.BOLD, 32));
-            g2.setColor(new Color(76, 187, 23));
-            int seconds = levelTimer / FPS;
-            g2.drawString("Time left: " + seconds + "s", 30, 50);
-
-            for (Enemy e : enemies) {
-                e.render(g2);
-            }
-
-            // Dibuja al jugador
-            player.render(g2);
-            g2.dispose();
+                for (Enemy e : enemies) {
+                    e.render(g2);
+                }
+                break;
         }
-    }
-
-    private int currentLevel = 1;
-
-    // Call this when the player completes a level
-    public void nextLevel() {
-        int maxLevel = 3;
-        if (currentLevel < maxLevel) {
-            currentLevel++;
-            resetLevel();
-        }
-//        else {
-//            // Game completed, show win screen or credits
-//        }
+        g2.dispose();
     }
 
     // Reset or load level-specific data
@@ -374,8 +398,9 @@ public class GamePanel extends JPanel implements Runnable {
         platforms.clear();
         enemies.clear();
         player.resetPosition();
+        player.facingRight = true;
         levelTimer = levelTimeLimit;
-        iniNivel = true;
+        startLevel3 = true;
         audioPlayer.stop();
         platformSpawnCounter = 0;
         platformsSinceLastEnemy = 0;

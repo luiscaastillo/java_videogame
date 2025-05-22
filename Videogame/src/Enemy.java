@@ -40,7 +40,7 @@ public class Enemy extends Entity {
         shootCounter++;
         int shootInterval = 90;
         if (shootCounter >= shootInterval) {
-            shoot();
+//            shoot();
             shootCounter = 0;
         }
 
