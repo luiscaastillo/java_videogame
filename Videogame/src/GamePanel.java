@@ -34,6 +34,7 @@ public class GamePanel extends JPanel implements Runnable {
     // Imágenes del juego
     private Image backgroundImage;  // Imagen de fondo
     private Image pauseImage;      // Imagen de pausa
+    private Image gameOverImage;   // Imagen de Game Over
 
     // Estado del juego
     private GameState gameState = GameState.MENU;
@@ -46,9 +47,13 @@ public class GamePanel extends JPanel implements Runnable {
 
     AudioPlayer audioPlayer = new AudioPlayer();
 
-    private final Rectangle playButton = new Rectangle(320, 250, 440, 90);
-    private final Rectangle exitButton = new Rectangle(320, 410, 440, 90);
+    // Botones del pausa
+    private final Rectangle playPauseButton = new Rectangle(320, 250, 440, 90);
+    private final Rectangle exitPauseButton = new Rectangle(320, 410, 440, 90);
 
+    // Botones del game over
+    private final Rectangle playGOverButton = new Rectangle(200, 460, 660, 110);
+    private final Rectangle exitGOverButton = new Rectangle(340, 590, 370, 60);
 
     // Constructor del panel del juego
     public GamePanel() {
@@ -67,6 +72,8 @@ public class GamePanel extends JPanel implements Runnable {
         try {
             backgroundImage = ImageIO.read(new File("Videogame/src/assets/background.png"));
             pauseImage = ImageIO.read(new File("Videogame/src/assets/pause.png"));
+            gameOverImage = ImageIO.read(new File("Videogame/src/assets/game_over.png"));
+
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -76,9 +83,16 @@ public class GamePanel extends JPanel implements Runnable {
             public void mouseClicked(MouseEvent e) {
                 Point p = e.getPoint();
                 if (gameState == GameState.MENU ||gameState == GameState.PAUSED) {
-                    if (playButton.contains(p)) {
+                    if (playPauseButton.contains(p)) {
                         setGameState(GameState.PLAYING);
-                    } else if (exitButton.contains(p)) {
+                    } else if (exitPauseButton.contains(p)) {
+                        System.exit(0);
+                    }
+                } else if (gameState == GameState.GAME_OVER) {
+                    if (playGOverButton.contains(p)) {
+                        resetLevel();
+                        setGameState(GameState.PLAYING);
+                    } else if (exitGOverButton.contains(p)) {
                         System.exit(0);
                     }
                 }
@@ -253,15 +267,12 @@ public class GamePanel extends JPanel implements Runnable {
 
         } else if (gameState == GameState.PAUSED) {
             g2.drawImage(pauseImage, backgroundX, 0, this.getWidth(), this.getHeight(), this);
-//            g2.fill(exitButton);
-//            g2.fill(playButton);
+//            g2.fill(exitPauseButton);
+//            g2.fill(playPauseButton);
         } else if (gameState == GameState.GAME_OVER) {
-            g2.setFont(new Font("Cascadia Code", Font.BOLD, 60));
-            g2.setColor(Color.RED);
-            g2.drawString("GAME OVER", 350, 350);
-            g2.setFont(new Font("Cascadia Code", Font.BOLD, 32));
-            g2.setColor(Color.WHITE);
-            g2.drawString("Press ENTER to Restart", 300, 400);
+            g2.drawImage(gameOverImage, backgroundX, 0, this.getWidth(), this.getHeight(), this);
+//            g2.fill(exitGOverButton);
+//            g2.fill(playGOverButton);
 
         } else if (gameState == GameState.PLAYING) {
 
