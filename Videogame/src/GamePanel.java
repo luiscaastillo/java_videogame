@@ -40,7 +40,7 @@ public class GamePanel extends JPanel implements Runnable {
     private Image pauseImage;      // Imagen de pausa
     private Image gameOverImage;   // Imagen de Game Over
     private Image winImage;        // Imagen de victoria
-    private Image[] lifeBarImages = new Image[3];
+    private final Image[] lifeBarImages = new Image[3];
 
 
     // Estado del juego
@@ -54,9 +54,8 @@ public class GamePanel extends JPanel implements Runnable {
 
     AudioPlayer audioPlayer = new AudioPlayer();
 
-    private List<Enemy> enemies = new ArrayList<>();
+    private final List<Enemy> enemies = new ArrayList<>();
     private int platformsSinceLastEnemy = 0;
-    private final int enemySpawnInterval = 5; // Number of platforms between enemy spawns
 
     // Botones del menú
     private final Rectangle playMenuButton = new Rectangle(340, 200, 400, 130);
@@ -201,7 +200,6 @@ public class GamePanel extends JPanel implements Runnable {
     private int levelTimer = levelTimeLimit; // in frames
 
     private int level2EnemySpawnCounter = 0;
-    private final int level2EnemySpawnInterval = 90; // frames (2 seconds at 60 FPS)
 
 
     // Variables para la velocidad de la plataforma
@@ -225,6 +223,8 @@ public class GamePanel extends JPanel implements Runnable {
         globalFrameCounter++;
         player.update(screen_height, platforms);
 
+        // frames (2 seconds at 60 FPS)
+        int level2EnemySpawnInterval = 90;
         switch (gameState) {
             case PLAYING_LEVEL3:
             if (startLevel3) {
@@ -258,14 +258,6 @@ public class GamePanel extends JPanel implements Runnable {
                 int platY = random.nextInt(maxY - minY + 1) + minY;
                 platforms.add(new Platform(screen_width, platY, platWidth, platHeight, 0));
                 platformsSinceLastEnemy++;
-                if (platformsSinceLastEnemy >= enemySpawnInterval) {
-                    // Place enemy on the new platform
-                    Platform lastPlat = platforms.getLast();
-                    Enemy enemy = new Enemy(lastPlat.x + lastPlat.width / 2 - 20, lastPlat.y - 40, 40, 40);
-                    enemy.setPlayer(player); // so it can shoot at the player
-                    enemies.add(enemy);
-                    platformsSinceLastEnemy = 0;
-                }
 
             }
 
@@ -299,11 +291,9 @@ public class GamePanel extends JPanel implements Runnable {
                 level2EnemySpawnCounter++;
                 if (level2EnemySpawnCounter >= level2EnemySpawnInterval) {
                     level2EnemySpawnCounter = 0;
-                    int enemyWidth = 3 * tile_size;
-                    int enemyHeight = 3 * tile_size;
-                    int enemyX = random.nextInt(screen_width - enemyWidth);
-                    int floorY = screen_height - 2*enemyHeight; // Align with floor
-                    enemies.add(new Enemy(enemyX, floorY, enemyWidth, enemyHeight));
+                    int enemyX = random.nextInt(screen_width - tile_size);
+                    int floorY = screen_height - 2 * tile_size; // Align with floor
+                    enemies.add(new Enemy(enemyX, floorY, tile_size, tile_size));
                 }
                 // Update existing enemies if needed
                 for (Enemy e : enemies) {
@@ -317,6 +307,7 @@ public class GamePanel extends JPanel implements Runnable {
                             player.markLifeLost(globalFrameCounter);
                             if (player.getLives() < 0) {
                                 setGameState(GameState.GAME_OVER);
+                                currGameState = GameState.GAME_OVER;
                             }
                         }
                     }
@@ -330,9 +321,11 @@ public class GamePanel extends JPanel implements Runnable {
                 switch (gameState) {
                     case PLAYING_LEVEL2:
                         setGameState(GameState.PLAYING_LEVEL3);
+                        currGameState = GameState.PLAYING_LEVEL3;
                         break;
                     case PLAYING_LEVEL3:
                         setGameState(GameState.WIN);
+                        currGameState = GameState.WIN;
                         break;
                 }
                 resetLevel();
@@ -405,11 +398,12 @@ public class GamePanel extends JPanel implements Runnable {
 
                 for (Enemy e : enemies) {
                     e.render(g2);
+                    e.setPlayer(player);
                 }
 
                 int lives = player.getLives();
                 lives = Math.max(0, Math.min(lives, 2)); // Clamp between 0 and 3
-                g2.drawImage(lifeBarImages[lives], 30, 80, 150, 50, this);
+                g2.drawImage(lifeBarImages[lives], 850, -50, 2*platWidth, 6*platHeight, this);
 
                 break;
         }

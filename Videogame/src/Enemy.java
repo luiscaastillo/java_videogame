@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Enemy extends Entity {
-    private List<Projectile> projectiles = new ArrayList<>();
+    private final List<Projectile> projectiles = new ArrayList<>();
     private Player player;
     private final Image[] runningImages = new Image[2]; // Imágenes para la animación
     private int animationIndex = 0; // Índice de la imagen actual
@@ -14,6 +14,8 @@ public class Enemy extends Entity {
     private int animationCounter = 0;
 
     private int shootCounter = 0;
+
+    private int speed = 2; // Adjust as needed
 
     public Enemy(int x, int y, int width, int height) {
         super(x, y, width, height);
@@ -27,6 +29,13 @@ public class Enemy extends Entity {
 
     @Override
     public void update() {
+        if (player != null) {
+            if (player.x < this.x) {
+                this.x -= speed;
+            } else if (player.x > this.x) {
+                this.x += speed;
+            }
+        }
 
         // Update position
         animationCounter++;
@@ -60,15 +69,23 @@ public class Enemy extends Entity {
 
     public void render(Graphics2D g2) {
         if (runningImages[animationIndex] != null) {
-            g2.drawImage(runningImages[animationIndex], x, y, width, height, null);
-        }
-        // Draw projectiles
-        for (Projectile p : projectiles) {
-            p.render(g2);
+            if (player != null && player.x < this.x) {
+                g2.drawImage(runningImages[animationIndex], x, y, width, height, null);
+            } else {
+                g2.drawImage(runningImages[animationIndex], x + width, y, -width, height, null);
+            }
         }
     }
 
     public void setPlayer(Player player) {
         this.player = player;
+    }
+
+    public boolean isUseFirstSprite() {
+        return useFirstSprite;
+    }
+
+    public void setUseFirstSprite(boolean useFirstSprite) {
+        this.useFirstSprite = useFirstSprite;
     }
 }
