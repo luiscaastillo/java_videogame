@@ -33,6 +33,7 @@ public class GamePanel extends JPanel implements Runnable {
 
     // Imágenes del juego
     private Image backgroundImage;  // Imagen de fondo
+    private Image menuImage;        // Imagen del menú
     private Image pauseImage;      // Imagen de pausa
     private Image gameOverImage;   // Imagen de Game Over
     private Image winImage;        // Imagen de victoria
@@ -48,12 +49,23 @@ public class GamePanel extends JPanel implements Runnable {
 
     AudioPlayer audioPlayer = new AudioPlayer();
 
+    private List<Enemy> enemies = new ArrayList<>();
+    private int platformsSinceLastEnemy = 0;
+    private final int enemySpawnInterval = 5; // Number of platforms between enemy spawns
+
+    // Botones del menú
+    private final Rectangle playMenuButton = new Rectangle(340, 200, 400, 130);
+    private final Rectangle exitMenuButton = new Rectangle(340, 450, 400, 100);
+    private final Rectangle helpMenuButton = new Rectangle(0, 0, screen_width, screen_height);
+
     // Botones del pausa
     private final Rectangle playPauseButton = new Rectangle(320, 250, 440, 90);
     private final Rectangle exitPauseButton = new Rectangle(320, 410, 440, 90);
+    private final Rectangle helpPauseButton = new Rectangle(320, 410, 440, 90);
 
     // Botones del game over
     private final Rectangle playGOverButton = new Rectangle(200, 460, 660, 110);
+    private final Rectangle menuGOverButton = new Rectangle(200, 300, 660, 110);
     private final Rectangle exitGOverButton = new Rectangle(340, 590, 370, 60);
 
     // Botones de win
@@ -76,6 +88,7 @@ public class GamePanel extends JPanel implements Runnable {
         try {
             backgroundImage = ImageIO.read(new File("Videogame/src/assets/background.png"));
             pauseImage = ImageIO.read(new File("Videogame/src/assets/pause.png"));
+            menuImage = ImageIO.read(new File("Videogame/src/assets/menu.png"));
             gameOverImage = ImageIO.read(new File("Videogame/src/assets/game_over.png"));
             winImage = ImageIO.read(new File("Videogame/src/assets/win.png"));
 
@@ -87,7 +100,14 @@ public class GamePanel extends JPanel implements Runnable {
             @Override
             public void mouseClicked(MouseEvent e) {
                 Point p = e.getPoint();
-                if (gameState == GameState.MENU ||gameState == GameState.PAUSED) {
+                if (gameState == GameState.MENU){
+                    if (playMenuButton.contains(p)) {
+                        setGameState(GameState.PLAYING);
+                    } else if (exitMenuButton.contains(p)) {
+                        System.exit(0);
+                    }
+                }
+                if (gameState == GameState.PAUSED) {
                     if (playPauseButton.contains(p)) {
                         setGameState(GameState.PLAYING);
                     } else if (exitPauseButton.contains(p)) {
@@ -99,6 +119,9 @@ public class GamePanel extends JPanel implements Runnable {
                         setGameState(GameState.PLAYING);
                     } else if (exitGOverButton.contains(p)) {
                         System.exit(0);
+                    } else if (menuGOverButton.contains(p)) {
+                        setGameState(GameState.MENU);
+                        resetLevel();
                     }
                 } else if (gameState == GameState.WIN) {
                     if (winButton.contains(p)) {
@@ -167,7 +190,7 @@ public class GamePanel extends JPanel implements Runnable {
     }
 
     // Variables para el temporizador de nivel
-    private final int levelTimeLimit = 5 * FPS;
+    private final int levelTimeLimit = 10 * FPS;
     private int levelTimer = levelTimeLimit; // in frames
 
     // Variables para la velocidad de la plataforma
@@ -202,6 +225,8 @@ public class GamePanel extends JPanel implements Runnable {
         int minY = 450; // minimum Y position
         int maxY = 600; // maximum Y position
 
+        int platY = 0;
+
         // When spawning a platform:
         int maxPlatformSpawnInterval = 60;
         // minimum spawn interval
@@ -213,7 +238,7 @@ public class GamePanel extends JPanel implements Runnable {
             }
             platformSpawnCounter = 0;
             // Spawn a new platform
-            int platY = random.nextInt(maxY - minY + 1) + minY;
+            platY = random.nextInt(maxY - minY + 1) + minY;
             platforms.add(new Platform(screen_width, platY, platWidth, platHeight, 0));
         }
 
@@ -224,6 +249,27 @@ public class GamePanel extends JPanel implements Runnable {
                 p.x -= (int)platformSpeed;
             }
         }
+        // After adding a new platform:
+//        platforms.add(new Platform(screen_width, platY, platWidth, platHeight, 0));
+//        platformsSinceLastEnemy++;
+//        if (platformsSinceLastEnemy >= enemySpawnInterval) {
+//            // Place enemy on the new platform
+//            Platform lastPlat = platforms.get(platforms.size() - 1);
+//            Enemy enemy = new Enemy(
+//                    lastPlat.x + lastPlat.width / 2 - 20, // center enemy on platform
+//                    lastPlat.y - 40,                      // place enemy above platform
+//                    40, 40,
+//                    "path/to/sprite1.png",
+//                    "path/to/sprite2.png"
+//            );
+//            enemy.setPlayer(player); // so it can shoot at the player
+//            enemies.add(enemy);
+//            platformsSinceLastEnemy = 0;
+//        }
+
+//        for (Enemy e : enemies) {
+//            e.update();
+//        }
 
         platforms.removeIf(p -> p.x + p.width < 0);
 
@@ -272,8 +318,9 @@ public class GamePanel extends JPanel implements Runnable {
         Graphics2D g2 = (Graphics2D) g;
         g2.setColor(new Color(255, 255, 255));
         if (gameState == GameState.MENU) {
-            g2.setFont(new Font("Cascadia Code", Font.BOLD, 40));
-            g2.drawString("Press ENTER to Start", 300, 400);
+            g2.drawImage(menuImage, backgroundX, 0, this.getWidth(), this.getHeight(), this);
+//            g2.fill(playMenuButton);
+//            g2.fill(exitMenuButton);
 
         } else if (gameState == GameState.PAUSED) {
             g2.drawImage(pauseImage, backgroundX, 0, this.getWidth(), this.getHeight(), this);
@@ -283,6 +330,7 @@ public class GamePanel extends JPanel implements Runnable {
             g2.drawImage(gameOverImage, backgroundX, 0, this.getWidth(), this.getHeight(), this);
 //            g2.fill(exitGOverButton);
 //            g2.fill(playGOverButton);
+//            g2.fill(menuGOverButton);
 
         } else if (gameState == GameState.WIN) {
             g2.drawImage(winImage, backgroundX, 0, this.getWidth(), this.getHeight(), this);
@@ -308,6 +356,11 @@ public class GamePanel extends JPanel implements Runnable {
             g2.setColor(new Color(76, 187, 23));
             int seconds = levelTimer / FPS;
             g2.drawString("Time left: " + seconds + "s", 30, 50);
+
+//            for (Enemy e : enemies) {
+//                e.update();
+//            }
+
             // Dibuja al jugador
             player.render(g2);
             g2.dispose();
