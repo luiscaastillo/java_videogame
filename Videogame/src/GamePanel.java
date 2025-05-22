@@ -306,8 +306,8 @@ public class GamePanel extends JPanel implements Runnable {
                             player.loseLife();
                             player.markLifeLost(globalFrameCounter);
                             if (player.getLives() < 0) {
+                                currGameState = gameState;
                                 setGameState(GameState.GAME_OVER);
-                                currGameState = GameState.GAME_OVER;
                             }
                         }
                     }
@@ -341,7 +341,7 @@ public class GamePanel extends JPanel implements Runnable {
         }
 
         if (gameState == GameState.GAME_OVER) {
-            resetLevel();
+//            resetLevel();
         }
 
     }
@@ -366,7 +366,7 @@ public class GamePanel extends JPanel implements Runnable {
             case GAME_OVER:
                 g2.drawImage(gameOverImage, backgroundX, 0, this.getWidth(), this.getHeight(), this);
                 // g2.fill(exitGOverButton);
-                // g2.fill(replayButton);
+//                 g2.fill(replayButton);
                 // g2.fill(menuGOverButton);
                 break;
             case WIN:

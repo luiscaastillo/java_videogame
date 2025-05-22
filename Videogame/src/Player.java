@@ -133,6 +133,12 @@ public class Player extends Entity {
                 animationIndex = (animationIndex + 1) % runningImages.length;
             }
         }
+
+        if (x < 0) x = 0;
+        if (x + width > gamePanel.getWidth()) x = gamePanel.getWidth() - width;
+
+        // Prevent player from going above the screen
+        if (y < 0) y = 0;
     }
 
     public void render(Graphics2D g2) {
