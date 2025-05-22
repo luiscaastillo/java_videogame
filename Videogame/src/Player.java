@@ -162,4 +162,12 @@ public class Player extends Entity {
         this.y = originalY;
     }
 
+    @Override
+    public Rectangle getBounds() {
+        int insetX = width / 6;   // Adjust as needed
+        int insetY = height / 6;  // Adjust as needed
+        int w = width - 2 * insetX;
+        int h = height - 2 * insetY;
+        return new Rectangle(x + insetX, y + insetY, w, h);
+    }
 }

@@ -302,6 +302,7 @@ public class GamePanel extends JPanel implements Runnable {
                 int cooldownFrames = 120; // 2 seconds at 60 FPS
                 for (Enemy e : enemies) {
                     if (player.getBounds().intersects(e.getBounds())) {
+                        e.setHit(true);
                         if (player.canLoseLife(globalFrameCounter, cooldownFrames)) {
                             player.loseLife();
                             player.markLifeLost(globalFrameCounter);
@@ -400,8 +401,8 @@ public class GamePanel extends JPanel implements Runnable {
 //            healthBar.render(g2);
 
                 for (Enemy e : enemies) {
-                    e.render(g2);
                     e.setPlayer(player);
+                    e.render(g2);
                 }
 
                 int lives = player.getLives();
