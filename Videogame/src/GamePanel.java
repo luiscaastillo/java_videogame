@@ -102,6 +102,7 @@ public class GamePanel extends JPanel implements Runnable {
                 Point p = e.getPoint();
                 if (gameState == GameState.MENU){
                     if (playMenuButton.contains(p)) {
+                        resetLevel();
                         setGameState(GameState.PLAYING);
                     } else if (exitMenuButton.contains(p)) {
                         System.exit(0);
@@ -120,8 +121,8 @@ public class GamePanel extends JPanel implements Runnable {
                     } else if (exitGOverButton.contains(p)) {
                         System.exit(0);
                     } else if (menuGOverButton.contains(p)) {
-                        setGameState(GameState.MENU);
                         resetLevel();
+                        setGameState(GameState.MENU);
                     }
                 } else if (gameState == GameState.WIN) {
                     if (winButton.contains(p)) {
@@ -150,10 +151,6 @@ public class GamePanel extends JPanel implements Runnable {
         this.gameState = gameState;
     }
 
-    /**
-     * Métod0 principal del bucle del juego.
-     * Mantiene el juego actualizado y renderizado a una tasa constante.
-     */
     @Override
     public void run() {
         double draw_interval = 1000000000.0 / FPS;  // Nanosegundos por fotograma
@@ -225,8 +222,6 @@ public class GamePanel extends JPanel implements Runnable {
         int minY = 450; // minimum Y position
         int maxY = 600; // maximum Y position
 
-        int platY = 0;
-
         // When spawning a platform:
         int maxPlatformSpawnInterval = 60;
         // minimum spawn interval
@@ -238,8 +233,18 @@ public class GamePanel extends JPanel implements Runnable {
             }
             platformSpawnCounter = 0;
             // Spawn a new platform
-            platY = random.nextInt(maxY - minY + 1) + minY;
+            int platY = random.nextInt(maxY - minY + 1) + minY;
             platforms.add(new Platform(screen_width, platY, platWidth, platHeight, 0));
+            platformsSinceLastEnemy++;
+            if (platformsSinceLastEnemy >= enemySpawnInterval) {
+                // Place enemy on the new platform
+                Platform lastPlat = platforms.getLast();
+                Enemy enemy = new Enemy(lastPlat.x + lastPlat.width / 2 - 20, lastPlat.y - 40,  40, 40);
+                enemy.setPlayer(player); // so it can shoot at the player
+                enemies.add(enemy);
+                platformsSinceLastEnemy = 0;
+            }
+
         }
 
         for (Platform p : platforms) {
@@ -249,27 +254,10 @@ public class GamePanel extends JPanel implements Runnable {
                 p.x -= (int)platformSpeed;
             }
         }
-        // After adding a new platform:
-//        platforms.add(new Platform(screen_width, platY, platWidth, platHeight, 0));
-//        platformsSinceLastEnemy++;
-//        if (platformsSinceLastEnemy >= enemySpawnInterval) {
-//            // Place enemy on the new platform
-//            Platform lastPlat = platforms.get(platforms.size() - 1);
-//            Enemy enemy = new Enemy(
-//                    lastPlat.x + lastPlat.width / 2 - 20, // center enemy on platform
-//                    lastPlat.y - 40,                      // place enemy above platform
-//                    40, 40,
-//                    "path/to/sprite1.png",
-//                    "path/to/sprite2.png"
-//            );
-//            enemy.setPlayer(player); // so it can shoot at the player
-//            enemies.add(enemy);
-//            platformsSinceLastEnemy = 0;
-//        }
 
-//        for (Enemy e : enemies) {
-//            e.update();
-//        }
+        for (Enemy e : enemies) {
+            e.update();
+        }
 
         platforms.removeIf(p -> p.x + p.width < 0);
 
@@ -357,9 +345,9 @@ public class GamePanel extends JPanel implements Runnable {
             int seconds = levelTimer / FPS;
             g2.drawString("Time left: " + seconds + "s", 30, 50);
 
-//            for (Enemy e : enemies) {
-//                e.update();
-//            }
+            for (Enemy e : enemies) {
+                e.render(g2);
+            }
 
             // Dibuja al jugador
             player.render(g2);
@@ -384,10 +372,16 @@ public class GamePanel extends JPanel implements Runnable {
     // Reset or load level-specific data
     private void resetLevel() {
         platforms.clear();
+        enemies.clear();
         player.resetPosition();
         levelTimer = levelTimeLimit;
         iniNivel = true;
         audioPlayer.stop();
+        platformSpawnCounter = 0;
+        platformsSinceLastEnemy = 0;
+        platformSpeed = 4.0;
+        platformSpawnInterval = 90;
+        backgroundX = 0;
     }
 
 }

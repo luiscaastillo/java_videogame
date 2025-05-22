@@ -8,39 +8,36 @@ import java.util.List;
 public class Enemy extends Entity {
     private List<Projectile> projectiles = new ArrayList<>();
     private Player player;
-    private Image sprite1;
-    private Image sprite2;
+    private final Image[] runningImages = new Image[2]; // Imágenes para la animación
+    private int animationIndex = 0; // Índice de la imagen actual
     private boolean useFirstSprite = true;
     private int animationCounter = 0;
 
     private int shootCounter = 0;
 
-    public Enemy(int x, int y, int width, int height, String spritePath1, String spritePath2) {
+    public Enemy(int x, int y, int width, int height) {
         super(x, y, width, height);
-//        try {
-//            sprite1 = ImageIO.read(new File(spritePath1));
-//            sprite2 = ImageIO.read(new File(spritePath2));
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-        sprite = sprite1;
+        try {
+            runningImages[0] = ImageIO.read(new File("Videogame/src/assets/enemy.png"));
+            runningImages[1] = ImageIO.read(new File("Videogame/src/assets/enemy.png"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
     public void update() {
-        // Alternate sprite for animation
+
+        // Update position
         animationCounter++;
-        // frames
-        int animationInterval = 30;
-        if (animationCounter >= animationInterval) {
-            useFirstSprite = !useFirstSprite;
-            sprite = useFirstSprite ? sprite1 : sprite2;
+        int animationSpeed = 10;
+        if (animationCounter >= animationSpeed) {
             animationCounter = 0;
+            animationIndex = (animationIndex + 1) % runningImages.length; // Alterna entre 0 y 1
         }
 
         // Shooting logic
         shootCounter++;
-        // frames
         int shootInterval = 90;
         if (shootCounter >= shootInterval) {
             shoot();
@@ -62,8 +59,12 @@ public class Enemy extends Entity {
     }
 
     public void render(Graphics2D g2) {
-        if (sprite != null) {
-            g2.drawImage(sprite, x, y, width, height, null);
+        if (runningImages[animationIndex] != null) {
+            g2.drawImage(runningImages[animationIndex], x, y, width, height, null);
+        }
+        // Draw projectiles
+        for (Projectile p : projectiles) {
+            p.render(g2);
         }
     }
 
