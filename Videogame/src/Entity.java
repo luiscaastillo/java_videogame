@@ -39,4 +39,8 @@ public class Entity {
         velocityY += gravity;
         y += (int) velocityY;
     }
+
+    public Rectangle getBounds() {
+        return new Rectangle(x, y, width, height);
+    }
 }

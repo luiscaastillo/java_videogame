@@ -15,6 +15,8 @@ public class Player extends Entity {
     private final int originalY;
     private final GamePanel gamePanel;
     protected boolean facingRight = true;
+    private int lives;
+
 
     public Player(int x, int y, int width, int height, int speed, KeyHandler keyH, GamePanel gamePanel) {
         super(x, y, width, height);
@@ -23,7 +25,7 @@ public class Player extends Entity {
         this.originalX = x;
         this.originalY = y;
         this.gamePanel = gamePanel;
-
+        this.lives = 3; // Inicializa las vidas del jugador
         // Carga las imágenes de animación
         try {
             runningImages[0] = ImageIO.read(new File("Videogame/src/assets/player1.png"));
@@ -33,6 +35,27 @@ public class Player extends Entity {
         }
     }
 
+    public void setLives(int lives) {
+        this.lives = lives;
+    }
+
+    private long lastLifeLostTime = 0; // in frames
+
+    public boolean canLoseLife(int currentFrame, int cooldownFrames) {
+        return (currentFrame - lastLifeLostTime) >= cooldownFrames;
+    }
+
+    public void markLifeLost(int currentFrame) {
+        lastLifeLostTime = currentFrame;
+    }
+
+    public int getLives() {
+        return lives;
+    }
+
+    public void loseLife() {
+        lives--;
+    }
     public void update(int screenHeight, List<Platform> platforms) {
 
         // Platform collision
@@ -132,4 +155,5 @@ public class Player extends Entity {
         this.x = originalX;
         this.y = originalY;
     }
+
 }

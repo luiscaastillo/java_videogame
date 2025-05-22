@@ -40,6 +40,8 @@ public class GamePanel extends JPanel implements Runnable {
     private Image pauseImage;      // Imagen de pausa
     private Image gameOverImage;   // Imagen de Game Over
     private Image winImage;        // Imagen de victoria
+    private Image[] lifeBarImages = new Image[3];
+
 
     // Estado del juego
     private GameState gameState = GameState.MENU;
@@ -95,6 +97,9 @@ public class GamePanel extends JPanel implements Runnable {
             menuImage = ImageIO.read(new File("Videogame/src/assets/menu.png"));
             gameOverImage = ImageIO.read(new File("Videogame/src/assets/game_over.png"));
             winImage = ImageIO.read(new File("Videogame/src/assets/win.png"));
+            lifeBarImages[0] = ImageIO.read(new File("Videogame/src/assets/healthBar1.png"));
+            lifeBarImages[1] = ImageIO.read(new File("Videogame/src/assets/healthBar2.png"));
+            lifeBarImages[2] = ImageIO.read(new File("Videogame/src/assets/healthBar3.png"));
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -142,9 +147,6 @@ public class GamePanel extends JPanel implements Runnable {
         });
     }
 
-    /**
-     * Inicia el hilo del juego para comenzar el bucle principal.
-     */
     public void startGameThread() {
         gameThread = new Thread(this);
         gameThread.start();
@@ -199,7 +201,7 @@ public class GamePanel extends JPanel implements Runnable {
     private int levelTimer = levelTimeLimit; // in frames
 
     private int level2EnemySpawnCounter = 0;
-    private final int level2EnemySpawnInterval = 120; // frames (2 seconds at 60 FPS)
+    private final int level2EnemySpawnInterval = 90; // frames (2 seconds at 60 FPS)
 
 
     // Variables para la velocidad de la plataforma
@@ -214,9 +216,13 @@ public class GamePanel extends JPanel implements Runnable {
     // Actualiza la lógica del juego (movimiento, colisiones, etc).
     boolean startLevel3 = true;
 
+    private int globalFrameCounter = 0;
+
+
     public void update() {
         // Actualiza la posición del fondo para simular el auto-scroll
         // Velocidad del auto-scroll
+        globalFrameCounter++;
         player.update(screen_height, platforms);
 
         switch (gameState) {
@@ -293,17 +299,29 @@ public class GamePanel extends JPanel implements Runnable {
                 level2EnemySpawnCounter++;
                 if (level2EnemySpawnCounter >= level2EnemySpawnInterval) {
                     level2EnemySpawnCounter = 0;
-                    if (random.nextBoolean()) { // 50% chance
-                        int enemyX = random.nextInt(screen_width - 40);
-                        int enemyY = random.nextInt(screen_height / 2) + screen_height / 2 - 100;
-                        enemies.add(new Enemy(enemyX, enemyY, 40, 40));
-                    }
+                    int enemyWidth = 3 * tile_size;
+                    int enemyHeight = 3 * tile_size;
+                    int enemyX = random.nextInt(screen_width - enemyWidth);
+                    int floorY = screen_height - 2*enemyHeight; // Align with floor
+                    enemies.add(new Enemy(enemyX, floorY, enemyWidth, enemyHeight));
                 }
                 // Update existing enemies if needed
                 for (Enemy e : enemies) {
                     e.update();
                 }
-                break;
+                int cooldownFrames = 120; // 2 seconds at 60 FPS
+                for (Enemy e : enemies) {
+                    if (player.getBounds().intersects(e.getBounds())) {
+                        if (player.canLoseLife(globalFrameCounter, cooldownFrames)) {
+                            player.loseLife();
+                            player.markLifeLost(globalFrameCounter);
+                            if (player.getLives() < 0) {
+                                setGameState(GameState.GAME_OVER);
+                            }
+                        }
+                    }
+                }
+            break;
         }
 
         if (gameState == GameState.PLAYING_LEVEL3 || gameState == GameState.PLAYING_LEVEL2) {
@@ -388,6 +406,11 @@ public class GamePanel extends JPanel implements Runnable {
                 for (Enemy e : enemies) {
                     e.render(g2);
                 }
+
+                int lives = player.getLives();
+                lives = Math.max(0, Math.min(lives, 2)); // Clamp between 0 and 3
+                g2.drawImage(lifeBarImages[lives], 30, 80, 150, 50, this);
+
                 break;
         }
         g2.dispose();
@@ -397,6 +420,7 @@ public class GamePanel extends JPanel implements Runnable {
     private void resetLevel() {
         platforms.clear();
         enemies.clear();
+        player.setLives(3);
         player.resetPosition();
         player.facingRight = true;
         levelTimer = levelTimeLimit;
