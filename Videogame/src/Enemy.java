@@ -2,15 +2,11 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
-import java.util.ArrayList;
-import java.util.List;
 
 public class Enemy extends Entity {
-    private final List<Projectile> projectiles = new ArrayList<>();
     private Player player;
     private final Image[] runningImages = new Image[12]; // Imágenes para la animación
     private int animationIndex = 0; // Índice de la imagen actual
-    private boolean useFirstSprite = true;
     private int animationCounter = 0;
     private int lifetime = 0;
     private boolean isDead = false;
@@ -101,14 +97,6 @@ public class Enemy extends Entity {
 
     public void setPlayer(Player player) {
         this.player = player;
-    }
-
-    public boolean isUseFirstSprite() {
-        return useFirstSprite;
-    }
-
-    public void setUseFirstSprite(boolean useFirstSprite) {
-        this.useFirstSprite = useFirstSprite;
     }
 
     @Override

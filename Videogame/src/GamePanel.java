@@ -55,7 +55,6 @@ public class GamePanel extends JPanel implements Runnable {
     AudioPlayer audioPlayer = new AudioPlayer();
 
     private final List<Enemy> enemies = new ArrayList<>();
-    private int platformsSinceLastEnemy = 0;
 
     // Botones del menú
     private final Rectangle playMenuButton = new Rectangle(340, 200, 400, 130);
@@ -257,7 +256,6 @@ public class GamePanel extends JPanel implements Runnable {
                 // Spawn a new platform
                 int platY = random.nextInt(maxY - minY + 1) + minY;
                 platforms.add(new Platform(screen_width, platY, platWidth, platHeight, 0));
-                platformsSinceLastEnemy++;
 
             }
 
@@ -341,10 +339,6 @@ public class GamePanel extends JPanel implements Runnable {
             gameState = GameState.PAUSED;
         }
 
-        if (gameState == GameState.GAME_OVER) {
-//            resetLevel();
-        }
-
     }
 
     @Override
@@ -356,20 +350,16 @@ public class GamePanel extends JPanel implements Runnable {
         switch (gameState) {
             case MENU:
                 g2.drawImage(menuImage, backgroundX, 0, this.getWidth(), this.getHeight(), this);
-                // g2.fill(playMenuButton);
-                // g2.fill(exitMenuButton);
                 break;
+
             case PAUSED:
                 g2.drawImage(pauseImage, backgroundX, 0, this.getWidth(), this.getHeight(), this);
-                // g2.fill(exitPauseButton);
-                // g2.fill(playPauseButton);
                 break;
+
             case GAME_OVER:
                 g2.drawImage(gameOverImage, backgroundX, 0, this.getWidth(), this.getHeight(), this);
-                // g2.fill(exitGOverButton);
-//                 g2.fill(replayButton);
-                // g2.fill(menuGOverButton);
                 break;
+
             case WIN:
                 g2.drawImage(winImage, backgroundX, 0, this.getWidth(), this.getHeight(), this);
                 break;
@@ -397,9 +387,6 @@ public class GamePanel extends JPanel implements Runnable {
                 g2.setColor(new Color(255, 87, 23));
                 g2.drawString("Time left: " + seconds + "s", 30, 50);
 
-//            Platform healthBar = new Platform(20, 20, platWidth, platHeight, 1);
-//            healthBar.render(g2);
-
                 for (Enemy e : enemies) {
                     e.setPlayer(player);
                     e.render(g2);
@@ -425,7 +412,6 @@ public class GamePanel extends JPanel implements Runnable {
         startLevel3 = true;
         audioPlayer.stop();
         platformSpawnCounter = 0;
-        platformsSinceLastEnemy = 0;
         platformSpeed = 4.0;
         platformSpawnInterval = 90;
         backgroundX = 0;
