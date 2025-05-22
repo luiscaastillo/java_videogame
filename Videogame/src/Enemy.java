@@ -12,6 +12,9 @@ public class Enemy extends Entity {
     private int animationIndex = 0; // Índice de la imagen actual
     private boolean useFirstSprite = true;
     private int animationCounter = 0;
+    private int lifetime = 0;
+    private boolean isDead = false;
+
 
     private int shootCounter = 0;
 
@@ -53,18 +56,15 @@ public class Enemy extends Entity {
             shootCounter = 0;
         }
 
-        for (Projectile p : projectiles) {
-            p.update();
+        lifetime++;
+        if (lifetime >= 180) {
+            isDead = true;
         }
-        projectiles.removeIf(p -> !p.active);
+
     }
 
-    public void shoot() {
-        if (player == null) return;
-        int direction = (player.x + player.width / 2) < (x + width / 2) ? -1 : 1;
-        int projX = direction == -1 ? x : x + width;
-        int projY = y + height / 2 - 5;
-        projectiles.add(new Projectile(projX, projY, 20, 10, 8, direction));
+    public boolean isDead() {
+        return isDead;
     }
 
     public void render(Graphics2D g2) {

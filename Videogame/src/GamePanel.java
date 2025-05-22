@@ -196,7 +196,7 @@ public class GamePanel extends JPanel implements Runnable {
     }
 
     // Variables para el temporizador de nivel
-    private final int levelTimeLimit = 10 * FPS;
+    private final int levelTimeLimit = 60 * FPS;
     private int levelTimer = levelTimeLimit; // in frames
 
     private int level2EnemySpawnCounter = 0;
@@ -312,6 +312,9 @@ public class GamePanel extends JPanel implements Runnable {
                         }
                     }
                 }
+
+                enemies.removeIf(Enemy::isDead);
+
             break;
         }
 
