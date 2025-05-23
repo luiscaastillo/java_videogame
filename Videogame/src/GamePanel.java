@@ -1,4 +1,3 @@
-// At the top of GamePanel.java
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
@@ -110,6 +109,7 @@ public class GamePanel extends JPanel implements Runnable {
         }
 
         this.addMouseListener(new MouseAdapter() {
+            boolean aux = false;
             @Override
             public void mouseClicked(MouseEvent e) {
                 Point p = e.getPoint();
@@ -118,8 +118,11 @@ public class GamePanel extends JPanel implements Runnable {
                     if (playMenuButton.contains(p)) {
                         resetLevel();
                         setGameState(GameState.PLAYING_LEVEL1);
+                        currGameState = gameState;
                     } else if (helpMenuButton.contains(p)) {
                         setGameState(GameState.HELP);
+                        currGameState = gameState;
+                        aux = true;
                     }
                     else if (exitMenuButton.contains(p)) {
                         System.exit(0);
@@ -129,6 +132,7 @@ public class GamePanel extends JPanel implements Runnable {
                 if (gameState == GameState.PAUSED) {
                     if (playPauseButton.contains(p)) {
                         setGameState(currGameState);
+
                     } else if (exitPauseButton.contains(p)) {
                         System.exit(0);
                     } else if (helpPauseButton.contains(p)) {
@@ -144,15 +148,20 @@ public class GamePanel extends JPanel implements Runnable {
                     } else if (menuGOverButton.contains(p)) {
                         resetLevel();
                         setGameState(GameState.MENU);
+                        currGameState = gameState;
                     }
 //                    Win
                 } else if (gameState == GameState.WIN) {
                     if (winButton.contains(p)) {
                         setGameState(GameState.MENU);
+
                         resetLevel();
                     }
                 } else if (gameState == GameState.HELP) {
                     if (exitHelpButton.contains(p)) {
+                        if (aux){
+                            setGameState(GameState.MENU);
+                        }
                         setGameState(currGameState);
                     }
                 }
@@ -182,9 +191,6 @@ public class GamePanel extends JPanel implements Runnable {
                 break;
             case PLAYING_LEVEL3:
                 audioPlayer.playBackgroundMusic("Videogame/src/assets/audio3.wav");
-                break;
-            default:
-                // Optionally stop music or play menu/pause music
                 break;
         }
     }
@@ -249,6 +255,7 @@ public class GamePanel extends JPanel implements Runnable {
     public void update() {
         // Actualiza la posición del fondo para simular el auto-scroll
         // Velocidad del auto-scroll
+        currGameState = gameState;
         globalFrameCounter++;
         player.update(screen_height, platforms);
 
@@ -302,8 +309,7 @@ public class GamePanel extends JPanel implements Runnable {
             // Actualiza al jugador
             if (player.isOnFloor(screen_height)) {
                 // Player has fallen off the screen
-                audioPlayer.stop();
-                gameState = GameState.GAME_OVER;
+                setGameState(GameState.GAME_OVER);
             }
 
             double maxPlatformSpeed = 20.0;
@@ -353,24 +359,24 @@ public class GamePanel extends JPanel implements Runnable {
                 switch (gameState) {
                     case PLAYING_LEVEL1:
                         setGameState(GameState.PLAYING_LEVEL2);
-                        currGameState = GameState.PLAYING_LEVEL2;
                         break;
                     case PLAYING_LEVEL2:
                         setGameState(GameState.PLAYING_LEVEL3);
-                        currGameState = GameState.PLAYING_LEVEL3;
                         break;
                     case PLAYING_LEVEL3:
                         setGameState(GameState.WIN);
-                        currGameState = GameState.WIN;
                         break;
                 }
-                resetLevel();
             }
         }
 
-        if(keyH.escapePressed) {
+        if (keyH.escapePressed) {
             currGameState = gameState;
             gameState = GameState.PAUSED;
+        }
+
+        if (gameState == GameState.GAME_OVER || gameState == GameState.WIN) {
+            resetLevel();
         }
 
     }

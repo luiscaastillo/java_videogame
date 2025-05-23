@@ -6,18 +6,19 @@ import javax.imageio.ImageIO;
 import java.awt.Rectangle;
 import java.util.List;
 
+// Player class represents the main controllable character in the game.
+// It handles movement, animation, collision, and life management.
 public class Player extends Entity {
-    private final KeyHandler keyH;
-    private final Image[] runningImages = new Image[2]; // Imágenes para la animación
-    private int animationIndex = 0; // Índice de la imagen actual
-    private int animationCounter = 0; // Contador para controlar la velocidad de animación
-    private final int originalX;
-    private final int originalY;
-    private final GamePanel gamePanel;
-    protected boolean facingRight = true;
-    private int lives;
+    private final KeyHandler keyH; // Handles keyboard input for player actions
+    private final Image[] runningImages = new Image[2]; // Stores images for running animation
+    private int animationIndex = 0, animationCounter = 0; // Animation frame index and counter for timing
+    private final int originalX, originalY; // Original spawn position for resets
+    private final GamePanel gamePanel; // Reference to the main game panel
+    protected boolean facingRight = true; // Indicates if the player is facing right
+    private int lives = 3; // Number of lives the player has
+    private long lastLifeLostTime = 0; // Frame/time when the last life was lost
 
-
+    // Constructs a Player with position, size, speed, input handler, and game panel reference
     public Player(int x, int y, int width, int height, int speed, KeyHandler keyH, GamePanel gamePanel) {
         super(x, y, width, height);
         this.speed = speed;
@@ -25,9 +26,8 @@ public class Player extends Entity {
         this.originalX = x;
         this.originalY = y;
         this.gamePanel = gamePanel;
-        this.lives = 3; // Inicializa las vidas del jugador
-        // Carga las imágenes de animación
         try {
+            // Load running animation images
             runningImages[0] = ImageIO.read(new File("Videogame/src/assets/player1.png"));
             runningImages[1] = ImageIO.read(new File("Videogame/src/assets/player2.png"));
         } catch (IOException e) {
@@ -35,36 +35,27 @@ public class Player extends Entity {
         }
     }
 
-    public void setLives(int lives) {
-        this.lives = lives;
-    }
-
-    private long lastLifeLostTime = 0; // in frames
-
+    // Sets the number of lives
+    public void setLives(int lives) { this.lives = lives; }
+    // Returns the number of lives
+    public int getLives() { return lives; }
+    // Decreases the player's lives by one
+    public void loseLife() { lives--; }
+    // Checks if enough frames have passed to lose another life
     public boolean canLoseLife(int currentFrame, int cooldownFrames) {
         return (currentFrame - lastLifeLostTime) >= cooldownFrames;
     }
+    // Marks the frame/time when a life was lost
+    public void markLifeLost(int currentFrame) { lastLifeLostTime = currentFrame; }
 
-    public void markLifeLost(int currentFrame) {
-        lastLifeLostTime = currentFrame;
-    }
-
-    public int getLives() {
-        return lives;
-    }
-
-    public void loseLife() {
-        lives--;
-    }
+    // Updates the player's state, position, and animation
     public void update(int screenHeight, List<Platform> platforms) {
-
-        // Platform collision
         boolean onPlatform = false;
+        // Predict next position for collision detection
         Rectangle playerBounds = new Rectangle(x, (int) (y + velocityY), width, height);
+        // Check collision with platforms
         for (Platform p : platforms) {
-            Rectangle platBounds = p.getBounds();
-            // Check if player is falling and lands on top of the platform
-            if (velocityY >= 0 && playerBounds.intersects(platBounds) && y + height <= p.y + velocityY) {
+            if (velocityY >= 0 && playerBounds.intersects(p.getBounds()) && y + height <= p.y + velocityY) {
                 y = p.y - height;
                 velocityY = 0;
                 onPlatform = true;
@@ -72,94 +63,53 @@ public class Player extends Entity {
             }
         }
 
+        // Handle left/right movement in level 2
         if (gamePanel.getGameState() == GameState.PLAYING_LEVEL2) {
-            // Move left
-            if (keyH.leftPressed) {
-                x -= speed;
-                facingRight = false; // Update facing direction
-            }
-            // Move right
-            if (keyH.rightPressed) {
-                x += speed;
-                facingRight = true; // Update facing direction
-            }
+            if (keyH.leftPressed) { x -= speed; facingRight = false; }
+            if (keyH.rightPressed) { x += speed; facingRight = true; }
         }
 
-        // Jump
-        if (keyH.upPressed && (y + height >= screenHeight ||onPlatform)) {
-            velocityY = -15;
-        }
+        // Handle jumping and fast fall
+        if (keyH.upPressed && (y + height >= screenHeight || onPlatform)) velocityY = -15;
+        if (keyH.downPressed) velocityY = 10;
 
-        if (keyH.downPressed) {
-            velocityY = 10;
-        }
-
-        // Gravity
+        // Update position based on velocity
         super.update();
 
-
-        // Floor collision if not on any platform
-        if (!onPlatform && y + height> screenHeight) {
+        // Prevent falling below the screen
+        if (!onPlatform && y + height > screenHeight) {
             y = screenHeight - height;
             velocityY = 0;
         }
 
-        if (gamePanel.getGameState() == GameState.PLAYING_LEVEL3 || gamePanel.getGameState() == GameState.PLAYING_LEVEL1) {
-            // Actualiza la animación
+        // Update animation if moving or in certain game states
+        if (gamePanel.getGameState() == GameState.PLAYING_LEVEL3 || gamePanel.getGameState() == GameState.PLAYING_LEVEL1
+                || (gamePanel.getGameState() != GameState.PLAYING_LEVEL3 && (keyH.leftPressed || keyH.rightPressed))) {
             animationCounter++;
-            // Velocidad de cambio de imagen
-            int animationSpeed = 10;
-            if (animationCounter >= animationSpeed) {
-                animationCounter = 0;
-                animationIndex = (animationIndex + 1) % runningImages.length; // Alterna entre 0 y 1
-            }
-        }
-
-
-        // Animation only when moving left or right
-        if (gamePanel.getGameState() != GameState.PLAYING_LEVEL3 && (keyH.leftPressed || keyH.rightPressed)) {
-            animationCounter++;
-            int animationSpeed = 10;
-            if (animationCounter >= animationSpeed) {
+            if (animationCounter >= 10) {
                 animationCounter = 0;
                 animationIndex = (animationIndex + 1) % runningImages.length;
             }
         }
 
+        // Keep player within horizontal and vertical bounds
         if (x < 0) x = 0;
         if (x + width > gamePanel.getWidth()) x = gamePanel.getWidth() - width;
-
-        // Prevent player from going above the screen
         if (y < 0) y = 0;
     }
 
+    // Renders the player using the current animation frame and direction
     public void render(Graphics2D g2) {
-        // Dibuja la imagen actual de la animación
         if (runningImages[animationIndex] != null) {
-            if (facingRight) {
+            if (facingRight)
                 g2.drawImage(runningImages[animationIndex], x, y, width, height, null);
-            } else {
-                // Flip horizontally
+            else
                 g2.drawImage(runningImages[animationIndex], x + width, y, -width, height, null);
-            }
         }
     }
 
-    public boolean isOnFloor(int screenHeight) {
-        return y + height >= screenHeight;
-    }
-
-    public void resetPosition() {
-        this.x = originalX;
-        this.y = originalY;
-    }
-
-    @Override
-    public Rectangle getBounds() {
-        int insetX = width / 6;   // Adjust as needed
-        int insetY = height / 6;  // Adjust as needed
-        int w = width - 2 * insetX;
-        int h = height - 2 * insetY;
-        return new Rectangle(x + insetX, y + insetY, w, h);
-    }
+    // Returns true if the player is on the floor
+    public boolean isOnFloor(int screenHeight) { return y + height >= screenHeight; }
+    // Resets the player's position to the original spawn point
+    public void resetPosition() { this.x = originalX; this.y = originalY; }
 }

@@ -5,9 +5,10 @@ import java.io.IOException;
 public class AudioPlayer {
     private Clip clip;
 
-    // Method to play background music
+    // Plays background music from the specified file path.
     public void playBackgroundMusic(String filePath) {
         try {
+            // Load the audio file and start looping playback.
             AudioInputStream audioStream = AudioSystem.getAudioInputStream(new File(filePath));
             clip = AudioSystem.getClip();
             clip.open(audioStream);
@@ -18,11 +19,9 @@ public class AudioPlayer {
         }
     }
 
-    // Method to play sound effects
+    // Stops the currently playing audio clip.
     public void stop() {
-        if (clip != null && clip.isRunning()) {
-            clip.stop();
-        }
+        if (clip != null && clip.isRunning()) clip.stop();
     }
 
 }

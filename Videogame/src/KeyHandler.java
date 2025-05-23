@@ -1,62 +1,59 @@
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
-
+// Handles keyboard input for the game, tracking movement and escape keys, and managing game state transitions.
 public class KeyHandler implements KeyListener {
+    // True if the 'W' key is pressed.
+    public boolean upPressed;
+    // True if the 'S' key is pressed.
+    public boolean downPressed;
+    // True if the 'A' key is pressed.
+    public boolean leftPressed;
+    // True if the 'D' key is pressed.
+    public boolean rightPressed;
+    // True if the 'Escape' key is pressed.
+    public boolean escapePressed;
 
-    // Variables que indican si las teclas de dirección están presionadas
-    public boolean upPressed, downPressed, leftPressed, rightPressed, escapePressed;
+    // Reference to the game panel for state management.
     private final GamePanel gamePanel;
+
+    // Constructs a KeyHandler with the specified GamePanel.
     public KeyHandler(GamePanel gamePanel) {
         this.gamePanel = gamePanel;
     }
 
-    // Métod0 invocado cuando se presiona una tecla.
+    // Not used, but required by the KeyListener interface.
     @Override
-    public void keyTyped(java.awt.event.KeyEvent e) {
-        // No se implementa funcionalidad para este Métod0
-    }
+    public void keyTyped(KeyEvent e) {}
 
-    // Métod invocado cuando sepresiona una tecla.
+    // Handles key press events.
+    // Sets movement and escape flags, and manages state transitions on ENTER.
     @Override
     public void keyPressed(KeyEvent e) {
         int code = e.getKeyCode();
 
-        // Cambia el estado del juego según la tecla presionada
-        if ((gamePanel.getGameState() == GameState.MENU|| gamePanel.getGameState() == GameState.GAME_OVER) && code == KeyEvent.VK_ENTER) {
+        if ((gamePanel.getGameState() == GameState.MENU || gamePanel.getGameState() == GameState.GAME_OVER)
+                && code == KeyEvent.VK_ENTER) {
             gamePanel.setGameState(GameState.PLAYING_LEVEL3);
         }
 
-        // Actualiza las variables de estado según la tecla presionada
-        if (code == KeyEvent.VK_W)
-            upPressed = true;
-        if (code == KeyEvent.VK_A)
-            leftPressed = true;
-        if (code == KeyEvent.VK_S)
-            downPressed = true;
-        if (code == KeyEvent.VK_D)
-            rightPressed = true;
-        if (code == KeyEvent.VK_ESCAPE) {
-            escapePressed = true;
-        }
+        if (code == KeyEvent.VK_W) upPressed = true;
+        if (code == KeyEvent.VK_A) leftPressed = true;
+        if (code == KeyEvent.VK_S) downPressed = true;
+        if (code == KeyEvent.VK_D) rightPressed = true;
+        if (code == KeyEvent.VK_ESCAPE) escapePressed = true;
     }
 
-    // Métod invocado cuando se suelta una tecla.
+    // Handles key release events.
+    // Resets movement and escape flags.
     @Override
-    public void keyReleased(java.awt.event.KeyEvent e) {
-        int code = e.getKeyCode();  // Obtiene el código de la tecla liberada
+    public void keyReleased(KeyEvent e) {
+        int code = e.getKeyCode();
 
-        // Actualiza las variables de estado cuando se suelta una tecla
-        if (code == KeyEvent.VK_W)
-            upPressed = false;
-        if (code == KeyEvent.VK_A)
-            leftPressed = false;
-        if (code == KeyEvent.VK_S)
-            downPressed = false;
-        if (code == KeyEvent.VK_D)
-            rightPressed = false;
-        if (code == KeyEvent.VK_ESCAPE) {
-            escapePressed = false;
-        }
+        if (code == KeyEvent.VK_W) upPressed = false;
+        if (code == KeyEvent.VK_A) leftPressed = false;
+        if (code == KeyEvent.VK_S) downPressed = false;
+        if (code == KeyEvent.VK_D) rightPressed = false;
+        if (code == KeyEvent.VK_ESCAPE) escapePressed = false;
     }
 }

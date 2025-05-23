@@ -1,32 +1,23 @@
 import javax.swing.JFrame;
 
-/**
- * Clase principal que inicia la aplicación del juego.
- * Configura la ventana principal y carga el panel del juego.
- */
 public class Main {
     public static void main(String[] args) {
-        // Crear la ventana principal
+        // Create the main game window with a specific title.
+        JFrame window = new JFrame("DE REGRESO DEL MICTLÁN");
 
-        JFrame window = new JFrame();
-        window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);  // Cierra la aplicación al cerrar la ventana
-        window.setResizable(false);  // Evita que el usuario cambie el tamaño de la ventana
-        window.setTitle("DE REGRESO DEL MICTLÁN");  // Establece el título de la ventana
-        window.setSize(1280, 960);  // Establece el tamaño inicial de la ventana
+        window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        window.setResizable(false);
+        window.setSize(1280, 960);
 
-        // Crear y añadir el panel del juego a la ventana
+        // Create and add the game panel to the window.
         GamePanel gamePanel = new GamePanel();
+
         window.add(gamePanel);
-
-        // Ajusta el tamaño de la ventana para adaptarse al tamaño preferido del panel
         window.pack();
-
-        // Centra la ventana en la pantalla
         window.setLocationRelativeTo(null);
-        // Hace visible la ventana
         window.setVisible(true);
 
-        // Inicia el hilo del juego
+        // Start the main game loop.
         gamePanel.startGameThread();
     }
 }

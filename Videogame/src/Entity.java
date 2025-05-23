@@ -4,19 +4,19 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 
 public class Entity {
-    // Posición y dimensiones
-    public int x, y;                 // Coordenadas de posición en el mapa
-    public int width, height;        // Dimensiones de la entidad
-    public int speed;                // Velocidad de movimiento
+    // Position and size
+    public int x, y;                 // Position coordinates on the map
+    public int width, height;        // Entity dimensions
+    public int speed;                // Movement speed
 
-    // Física
-    protected double velocityY = 0;  // Velocidad vertical
-    protected final double gravity = 0.5;  // Constante de gravedad
+    // Physics
+    protected double velocityY = 0;  // Vertical velocity
+    protected final double gravity = 0.5;  // Gravity constant
 
-    // Imagen y dirección
-    protected Image sprite;          // Imagen de la entidad
+    // Image and direction
+    protected Image sprite;          // Entity image
 
-    // Constructor
+    // Constructor to initialize position and size
     public Entity(int x, int y, int width, int height) {
         this.x = x;
         this.y = y;
@@ -24,7 +24,7 @@ public class Entity {
         this.height = 2 * height;
     }
 
-    // Métod para dibujar la entidad en el panel de juego
+    // Loads the entity's image from the given path.
     public void loadImage(String path) {
         try {
             sprite = ImageIO.read(new File(path));
@@ -33,14 +33,18 @@ public class Entity {
         }
     }
 
-    // Métod para dibujar la entidad en el panel de juego
+    // Updates the entity's position and applies gravity.
     public void update() {
-        // Aplica la gravedad
         velocityY += gravity;
         y += (int) velocityY;
     }
 
+    // Returns the bounding rectangle for collision detection.
     public Rectangle getBounds() {
-        return new Rectangle(x, y, width, height);
+        int insetX = width / 6;
+        int insetY = height / 6;
+        int w = width - 2 * insetX;
+        int h = height - 2 * insetY;
+        return new Rectangle(x + insetX, y + insetY, w, h);
     }
 }

@@ -3,42 +3,46 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 
+// Platform class represents a platform entity in the game.
 public class Platform extends Entity {
+    // Shared image for all platform instances.
     private static Image platformImage;
+    // Type identifier for the platform.
     protected final int type;
 
+    // Static block to load the platform image resource.
     static {
         try {
             platformImage = ImageIO.read(new File("Videogame/src/assets/platform.png"));
-//            healthBarImage = ImageIO.read(new File("Videogame/src/assets/healthBar.png"));
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    // Constructor
+    // Constructs a Platform with specified position, size, and type.
     public Platform(int x, int y, int width, int height, int type) {
         super(x, y, width, height);
         this.type = type;
     }
 
-    // Constructor para plataformas heathBar
+    // Renders the platform using the loaded image.
+    // If the image is not available, draws a rectangle as a fallback.
     public void render(Graphics2D g2) {
-        Image img = platformImage;
-        if (img != null) {
-            int stretchW = 150; // pixels to stretch horizontally (total)
-            int stretchH = 40; // pixels to stretch vertically (upwards)
-            int drawX = x - stretchW / 2;
-            int drawY = y - stretchH;
-            int drawWidth = width + stretchW;
-            int drawHeight = height + stretchH;
-            g2.drawImage(img, drawX, drawY, drawWidth, drawHeight, null);
-        } else {
-            g2.setColor(Color.DARK_GRAY);
-            g2.fillRect(x, y, width, height);
-        }
+        if (platformImage != null) {
+            int stretchWidth = 150;
+            int stretchHeight = 40;
+            g2.drawImage(
+                    platformImage,
+                    x - stretchWidth / 2,
+                    y - stretchHeight,
+                    width + stretchWidth,
+                    height + stretchHeight,
+                    null
+            );
+        } else g2.fillRect(x, y, width, height);
     }
 
+    // Returns the collision bounds of the platform.
     public Rectangle getBounds() {
         return new Rectangle(x, y, width - 20, height - 50);
     }
