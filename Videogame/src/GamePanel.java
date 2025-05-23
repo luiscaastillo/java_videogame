@@ -449,11 +449,12 @@ public class GamePanel extends JPanel implements Runnable {
             case HELP:
                 g2.drawImage(help, backgroundX, 0, this.getWidth(), this.getHeight(), this);
 
-                String text = "Para jugar, usa las teclas de A y D para moverte.\n" +
-                        "Presiona W para saltar.\n" +
-                        "Presiona S para caer (Niveles 1 y 3).\n" +
-                        "Evita a los enemigos y sobrevive el tiempo necesario\n" +
-                        "¡Buena suerte!";
+                String text = """
+                        Para jugar, usa las teclas de A y D para moverte.
+                        Presiona W para saltar.
+                        Presiona S para caer (Niveles 1 y 3).
+                        Evita a los enemigos y sobrevive el tiempo necesario
+                        ¡Buena suerte!""";
                 g2.setFont(new Font("Cascadia Code", Font.BOLD, 32));
                 FontMetrics fm = g2.getFontMetrics();
                 String[] lines = text.split("\n");
