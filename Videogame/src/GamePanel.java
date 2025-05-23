@@ -36,6 +36,8 @@ public class GamePanel extends JPanel implements Runnable {
     // Imágenes del juego
     private Image level1Image;  // Imagen de fondo
     private Image level2Image;  // Imagen de fondo
+    private Image level3Image;  // Imagen de fondo
+    private Image help;         // Imagen de fondo
     private Image menuImage;        // Imagen del menú
     private Image pauseImage;      // Imagen de pausa
     private Image gameOverImage;   // Imagen de Game Over
@@ -59,12 +61,12 @@ public class GamePanel extends JPanel implements Runnable {
     // Botones del menú
     private final Rectangle playMenuButton = new Rectangle(340, 200, 400, 130);
     private final Rectangle exitMenuButton = new Rectangle(340, 450, 400, 100);
-    private final Rectangle helpMenuButton = new Rectangle(0, 0, screen_width, screen_height);
+    private final Rectangle helpMenuButton = new Rectangle(340, 330, 400, 130);
 
     // Botones del pausa
     private final Rectangle playPauseButton = new Rectangle(320, 250, 440, 90);
     private final Rectangle exitPauseButton = new Rectangle(320, 410, 440, 90);
-    private final Rectangle helpPauseButton = new Rectangle(320, 410, 440, 90);
+    private final Rectangle helpPauseButton = new Rectangle(320, 570, 440, 90);
 
     // Botones del game over
     private final Rectangle replayButton = new Rectangle(200, 460, 660, 110);
@@ -73,6 +75,8 @@ public class GamePanel extends JPanel implements Runnable {
 
     // Botones de win
     private final Rectangle winButton = new Rectangle(0, 0, screen_width, screen_height);
+
+    private final Rectangle exitHelpButton = new Rectangle(0, 0, screen_width, screen_height);
 
     // Constructor del panel del juego
     public GamePanel() {
@@ -89,12 +93,14 @@ public class GamePanel extends JPanel implements Runnable {
 
         // Carga la imagen de fondo
         try {
-            level1Image = ImageIO.read(new File("Videogame/src/assets/level3.png"));
+            level1Image = ImageIO.read(new File("Videogame/src/assets/level1.png"));
+            level3Image = ImageIO.read(new File("Videogame/src/assets/level3.png"));
             level2Image = ImageIO.read(new File("Videogame/src/assets/level2.png"));
             pauseImage = ImageIO.read(new File("Videogame/src/assets/pause.png"));
             menuImage = ImageIO.read(new File("Videogame/src/assets/menu.png"));
             gameOverImage = ImageIO.read(new File("Videogame/src/assets/game_over.png"));
             winImage = ImageIO.read(new File("Videogame/src/assets/win.png"));
+            help = ImageIO.read(new File("Videogame/src/assets/help.png"));
             lifeBarImages[0] = ImageIO.read(new File("Videogame/src/assets/healthBar1.png"));
             lifeBarImages[1] = ImageIO.read(new File("Videogame/src/assets/healthBar2.png"));
             lifeBarImages[2] = ImageIO.read(new File("Videogame/src/assets/healthBar3.png"));
@@ -111,8 +117,11 @@ public class GamePanel extends JPanel implements Runnable {
                 if (gameState == GameState.MENU){
                     if (playMenuButton.contains(p)) {
                         resetLevel();
-                        setGameState(GameState.PLAYING_LEVEL2);
-                    } else if (exitMenuButton.contains(p)) {
+                        setGameState(GameState.PLAYING_LEVEL1);
+                    } else if (helpMenuButton.contains(p)) {
+                        setGameState(GameState.HELP);
+                    }
+                    else if (exitMenuButton.contains(p)) {
                         System.exit(0);
                     }
                 }
@@ -122,6 +131,8 @@ public class GamePanel extends JPanel implements Runnable {
                         setGameState(currGameState);
                     } else if (exitPauseButton.contains(p)) {
                         System.exit(0);
+                    } else if (helpPauseButton.contains(p)) {
+                        setGameState(GameState.HELP);
                     }
 //                    Game Over
                 } else if (gameState == GameState.GAME_OVER) {
@@ -140,6 +151,11 @@ public class GamePanel extends JPanel implements Runnable {
                         setGameState(GameState.MENU);
                         resetLevel();
                     }
+                } else if (gameState == GameState.HELP) {
+                    if (exitHelpButton.contains(p)) {
+                        setGameState(currGameState);
+
+                    }
                 }
             }
         });
@@ -157,6 +173,21 @@ public class GamePanel extends JPanel implements Runnable {
 
     public void setGameState(GameState gameState) {
         this.gameState = gameState;
+        audioPlayer.stop(); // Stop any previous music
+        switch (gameState) {
+            case PLAYING_LEVEL1:
+                audioPlayer.playBackgroundMusic("Videogame/src/assets/audio2.wav");
+                break;
+            case PLAYING_LEVEL2:
+                audioPlayer.playBackgroundMusic("Videogame/src/assets/audio1.wav");
+                break;
+            case PLAYING_LEVEL3:
+                audioPlayer.playBackgroundMusic("Videogame/src/assets/audio3.wav");
+                break;
+            default:
+                // Optionally stop music or play menu/pause music
+                break;
+        }
     }
 
     @Override
@@ -177,7 +208,7 @@ public class GamePanel extends JPanel implements Runnable {
 
             // Actualiza y renderiza cuando es tiempo de un nuevo fotograma
             if (delta >= 1) {
-                if (gameState == GameState.PLAYING_LEVEL3 || gameState == GameState.PLAYING_LEVEL2) {
+                if (gameState == GameState.PLAYING_LEVEL3 || gameState == GameState.PLAYING_LEVEL2 || gameState == GameState.PLAYING_LEVEL1) {
                     update();   // Only update game logic if playing
                 }
                 repaint();      // Always repaint to show menu or pause screen
@@ -195,7 +226,7 @@ public class GamePanel extends JPanel implements Runnable {
     }
 
     // Variables para el temporizador de nivel
-    private final int levelTimeLimit = 30 * FPS;
+    private final int levelTimeLimit = 10 * FPS;
     private int levelTimer = levelTimeLimit; // in frames
 
     private int level2EnemySpawnCounter = 0;
@@ -225,6 +256,7 @@ public class GamePanel extends JPanel implements Runnable {
         // frames (2 seconds at 60 FPS)
         int level2EnemySpawnInterval = 120;
         switch (gameState) {
+            case PLAYING_LEVEL1:
             case PLAYING_LEVEL3:
             if (startLevel3) {
                 platforms.add(new Platform(0, 650, 2 * platWidth, platHeight, 1));
@@ -317,10 +349,14 @@ public class GamePanel extends JPanel implements Runnable {
             break;
         }
 
-        if (gameState == GameState.PLAYING_LEVEL3 || gameState == GameState.PLAYING_LEVEL2) {
+        if (gameState == GameState.PLAYING_LEVEL3 || gameState == GameState.PLAYING_LEVEL2 || gameState == GameState.PLAYING_LEVEL1) {
             levelTimer--;
             if (levelTimer <= 0) {
                 switch (gameState) {
+                    case PLAYING_LEVEL1:
+                        setGameState(GameState.PLAYING_LEVEL2);
+                        currGameState = GameState.PLAYING_LEVEL2;
+                        break;
                     case PLAYING_LEVEL2:
                         setGameState(GameState.PLAYING_LEVEL3);
                         currGameState = GameState.PLAYING_LEVEL3;
@@ -350,6 +386,7 @@ public class GamePanel extends JPanel implements Runnable {
         switch (gameState) {
             case MENU:
                 g2.drawImage(menuImage, backgroundX, 0, this.getWidth(), this.getHeight(), this);
+                g2.fill(helpMenuButton);
                 break;
 
             case PAUSED:
@@ -363,14 +400,24 @@ public class GamePanel extends JPanel implements Runnable {
             case WIN:
                 g2.drawImage(winImage, backgroundX, 0, this.getWidth(), this.getHeight(), this);
                 break;
+            case PLAYING_LEVEL1:
             case PLAYING_LEVEL3:
-                g2.drawImage(level1Image, backgroundX, 0, this.getWidth(), this.getHeight(), this);
+                if (gameState == GameState.PLAYING_LEVEL1) {
+                    g2.drawImage(level1Image, backgroundX, 0, this.getWidth(), this.getHeight(), this);
+                } else {
+                    g2.drawImage(level3Image, backgroundX, 0, this.getWidth(), this.getHeight(), this);
+                }
                 for (Platform p : platforms) {
                     p.render(g2);
                 }
                 // Draw timer (top left corner)
                 g2.setFont(new Font("Cascadia Code", Font.BOLD, 32));
-                g2.setColor(new Color(76, 187, 23));
+                if (gameState == GameState.PLAYING_LEVEL1) {
+                    g2.setColor(new Color(241, 196, 15));
+                }
+                else {
+                    g2.setColor(new Color(76, 187, 23));
+                }
                 g2.drawString("Time left: " + seconds + "s", 30, 50);
                 // Dibuja al jugador
                 player.render(g2);
@@ -386,7 +433,6 @@ public class GamePanel extends JPanel implements Runnable {
                 g2.setFont(new Font("Cascadia Code", Font.BOLD, 32));
                 g2.setColor(new Color(255, 87, 23));
                 g2.drawString("Time left: " + seconds + "s", 30, 50);
-
                 for (Enemy e : enemies) {
                     e.setPlayer(player);
                     e.render(g2);
@@ -395,8 +441,36 @@ public class GamePanel extends JPanel implements Runnable {
                 int lives = player.getLives();
                 lives = Math.max(0, Math.min(lives, 2)); // Clamp between 0 and 3
                 g2.drawImage(lifeBarImages[lives], 850, -50, 2*platWidth, 6*platHeight, this);
-
                 break;
+
+            case HELP:
+                g2.drawImage(help, backgroundX, 0, this.getWidth(), this.getHeight(), this);
+
+                String text = "Para jugar, usa las teclas de A y D para moverte.\n" +
+                        "Presiona W para saltar.\n" +
+                        "Presiona S para caer (Niveles 1 y 3).\n" +
+                        "Evita a los enemigos y sobrevive el tiempo necesario\n" +
+                        "¡Buena suerte!";
+                g2.setFont(new Font("Cascadia Code", Font.BOLD, 32));
+                FontMetrics fm = g2.getFontMetrics();
+                String[] lines = text.split("\n");
+
+                int lineHeight = fm.getHeight();
+                int totalTextHeight = lines.length * lineHeight;
+                int y = (getHeight() - totalTextHeight) / 2 + fm.getAscent();
+
+                for (String line : lines) {
+                    int textWidth = fm.stringWidth(line);
+                    int x = (getWidth() - textWidth) / 2;
+                    g2.setColor(new Color(17, 122, 101));
+                    g2.drawString(line, x + 2, y + 2);
+
+                    g2.setColor(new Color(26, 188, 156));
+                    g2.drawString(line, x, y);
+                    y += lineHeight;
+                }
+                break;
+
         }
         g2.dispose();
     }

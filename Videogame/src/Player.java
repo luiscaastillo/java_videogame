@@ -72,14 +72,16 @@ public class Player extends Entity {
             }
         }
 
-        if (gamePanel.getGameState() != GameState.PLAYING_LEVEL3) {
+        if (gamePanel.getGameState() == GameState.PLAYING_LEVEL2) {
             // Move left
             if (keyH.leftPressed) {
                 x -= speed;
+                facingRight = false; // Update facing direction
             }
             // Move right
             if (keyH.rightPressed) {
                 x += speed;
+                facingRight = true; // Update facing direction
             }
         }
 
@@ -102,7 +104,7 @@ public class Player extends Entity {
             velocityY = 0;
         }
 
-        if (gamePanel.getGameState() == GameState.PLAYING_LEVEL3) {
+        if (gamePanel.getGameState() == GameState.PLAYING_LEVEL3 || gamePanel.getGameState() == GameState.PLAYING_LEVEL1) {
             // Actualiza la animación
             animationCounter++;
             // Velocidad de cambio de imagen
@@ -113,16 +115,6 @@ public class Player extends Entity {
             }
         }
 
-        if (gamePanel.getGameState() != GameState.PLAYING_LEVEL3) {
-            if (keyH.leftPressed) {
-                x -= speed;
-                facingRight = false;
-            }
-            if (keyH.rightPressed) {
-                x += speed;
-                facingRight = true;
-            }
-        }
 
         // Animation only when moving left or right
         if (gamePanel.getGameState() != GameState.PLAYING_LEVEL3 && (keyH.leftPressed || keyH.rightPressed)) {
