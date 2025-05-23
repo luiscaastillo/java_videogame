@@ -154,7 +154,6 @@ public class GamePanel extends JPanel implements Runnable {
                 } else if (gameState == GameState.HELP) {
                     if (exitHelpButton.contains(p)) {
                         setGameState(currGameState);
-
                     }
                 }
             }
@@ -226,7 +225,7 @@ public class GamePanel extends JPanel implements Runnable {
     }
 
     // Variables para el temporizador de nivel
-    private final int levelTimeLimit = 10 * FPS;
+    private final int levelTimeLimit = 30 * FPS;
     private int levelTimer = levelTimeLimit; // in frames
 
     private int level2EnemySpawnCounter = 0;
@@ -262,7 +261,6 @@ public class GamePanel extends JPanel implements Runnable {
                 platforms.add(new Platform(0, 650, 2 * platWidth, platHeight, 1));
                 backgroundX -= (int) platformSpeed;
                 startLevel3 = false;
-                audioPlayer.playBackgroundMusic("Videogame/src/assets/audio3.wav");
             }
 
             // Reinicia la posición del fondo cuando salga completamente de la pantalla
@@ -386,7 +384,6 @@ public class GamePanel extends JPanel implements Runnable {
         switch (gameState) {
             case MENU:
                 g2.drawImage(menuImage, backgroundX, 0, this.getWidth(), this.getHeight(), this);
-                g2.fill(helpMenuButton);
                 break;
 
             case PAUSED:
