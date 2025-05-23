@@ -109,7 +109,6 @@ public class GamePanel extends JPanel implements Runnable {
         }
 
         this.addMouseListener(new MouseAdapter() {
-            boolean aux = false;
             @Override
             public void mouseClicked(MouseEvent e) {
                 Point p = e.getPoint();
@@ -122,7 +121,6 @@ public class GamePanel extends JPanel implements Runnable {
                     } else if (helpMenuButton.contains(p)) {
                         setGameState(GameState.HELP);
                         currGameState = gameState;
-                        aux = true;
                     }
                     else if (exitMenuButton.contains(p)) {
                         System.exit(0);
@@ -159,9 +157,6 @@ public class GamePanel extends JPanel implements Runnable {
                     }
                 } else if (gameState == GameState.HELP) {
                     if (exitHelpButton.contains(p)) {
-                        if (aux){
-                            setGameState(GameState.MENU);
-                        }
                         setGameState(currGameState);
                     }
                 }
@@ -259,6 +254,11 @@ public class GamePanel extends JPanel implements Runnable {
         globalFrameCounter++;
         player.update(screen_height, platforms);
 
+        if (keyH.escapePressed) {
+            currGameState = gameState;
+            gameState = GameState.PAUSED;
+        }
+
         // frames (2 seconds at 60 FPS)
         int level2EnemySpawnInterval = 120;
         switch (gameState) {
@@ -351,6 +351,10 @@ public class GamePanel extends JPanel implements Runnable {
                 enemies.removeIf(Enemy::isDead);
 
             break;
+            case GAME_OVER:
+            case WIN:
+                resetLevel();
+                break;
         }
 
         if (gameState == GameState.PLAYING_LEVEL3 || gameState == GameState.PLAYING_LEVEL2 || gameState == GameState.PLAYING_LEVEL1) {
@@ -369,16 +373,6 @@ public class GamePanel extends JPanel implements Runnable {
                 }
             }
         }
-
-        if (keyH.escapePressed) {
-            currGameState = gameState;
-            gameState = GameState.PAUSED;
-        }
-
-        if (gameState == GameState.GAME_OVER || gameState == GameState.WIN) {
-            resetLevel();
-        }
-
     }
 
     @Override
@@ -386,7 +380,6 @@ public class GamePanel extends JPanel implements Runnable {
         super.paintComponent(g);
         int seconds = levelTimer / FPS;
         Graphics2D g2 = (Graphics2D) g;
-        g2.setColor(new Color(255, 255, 255));
         switch (gameState) {
             case MENU:
                 g2.drawImage(menuImage, backgroundX, 0, this.getWidth(), this.getHeight(), this);
