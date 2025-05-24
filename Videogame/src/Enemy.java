@@ -57,11 +57,11 @@ public class Enemy extends Entity {
         } else {
             if (player != null) {
                 // Move towards the player.
-                int speed = 2;
+                int speed = 1;
                 if (player.x < this.x) {
-                    this.x -= speed / 2;
+                    this.x -= speed;
                 } else if (player.x > this.x) {
-                    this.x += speed / 2;
+                    this.x += speed;
                 }
             }
             // Update animation and lifetime.

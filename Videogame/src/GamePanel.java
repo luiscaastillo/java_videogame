@@ -7,7 +7,6 @@ import java.util.List;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 
-
 // GamePanel is the main game surface, handling game logic, rendering, and input.
 public class GamePanel extends JPanel implements Runnable {
     // Tile size and screen dimensions
@@ -45,7 +44,7 @@ public class GamePanel extends JPanel implements Runnable {
     private final int platHeight = tileSize / 2;
     // Level timer and time limit
     private int levelTimer;
-    private final int levelTimeLimit = 30 * FPS;
+    private final int levelTimeLimit = 10 * FPS;
     // Flag for starting level 3
     private boolean startPlatformLvl = true;
     // Global frame counter for timing
@@ -170,7 +169,8 @@ public class GamePanel extends JPanel implements Runnable {
             timer += currentTime - lastTime;
             lastTime = currentTime;
             if (delta >= 1) {
-                if (gameState == GameState.PLAYING_LEVEL1 || gameState == GameState.PLAYING_LEVEL2 || gameState == GameState.PLAYING_LEVEL3)
+                if (gameState == GameState.PLAYING_LEVEL1 || gameState == GameState.PLAYING_LEVEL2
+                    || gameState == GameState.PLAYING_LEVEL3)
                     update();
                 repaint();
                 delta--;
@@ -230,7 +230,7 @@ public class GamePanel extends JPanel implements Runnable {
                     enemies.add(new Enemy(enemyX, floorY, tileSize, tileSize));
                 }
                 for (Enemy e : enemies) e.update();
-                int cooldownFrames = 120;
+                int cooldownFrames = 150;
                 for (Enemy e : enemies) {
                     if (player.getBounds().intersects(e.getBounds())) {
                         e.setHit(true);
@@ -238,7 +238,6 @@ public class GamePanel extends JPanel implements Runnable {
                             player.loseLife();
                             player.markLifeLost(globalFrameCounter);
                             if (player.getLives() < 0) {
-                                currGameState = gameState;
                                 setGameState(GameState.GAME_OVER);
                             }
                         }
@@ -250,17 +249,32 @@ public class GamePanel extends JPanel implements Runnable {
         }
 
         // Handle level timer and transitions
-        if (gameState == GameState.PLAYING_LEVEL1 || gameState == GameState.PLAYING_LEVEL2 || gameState == GameState.PLAYING_LEVEL3) {
+        if (gameState == GameState.PLAYING_LEVEL1 || gameState == GameState.PLAYING_LEVEL2
+            || gameState == GameState.PLAYING_LEVEL3) {
             levelTimer--;
             if (levelTimer <= 0) {
                 switch (gameState) {
                     // Transition to the next level or win state
-                    case PLAYING_LEVEL1 -> setGameState(GameState.PLAYING_LEVEL2);
-                    case PLAYING_LEVEL2 -> setGameState(GameState.PLAYING_LEVEL3);
+                    case PLAYING_LEVEL1 -> {
+                        platforms.clear();
+                        player.resetPosition();
+                        setGameState(GameState.PLAYING_LEVEL2);
+                    }
+                    case PLAYING_LEVEL2 -> {
+                        player.setLives(3);
+                        player.resetPosition();
+                        startPlatformLvl = true;
+                        player.facingRight = true;
+                        enemies.clear();
+                        setGameState(GameState.PLAYING_LEVEL3);
+                    }
                     case PLAYING_LEVEL3 -> setGameState(GameState.WIN);
                 }
+                levelTimer = levelTimeLimit;
+                return;
             }
         }
+        System.out.println(gameState);
     }
 
     // Renders the game based on the current state
@@ -275,10 +289,14 @@ public class GamePanel extends JPanel implements Runnable {
             case GAME_OVER -> g2.drawImage(gameOverImage, backgroundX, 0, getWidth(), getHeight(), this);
             case WIN -> g2.drawImage(winImage, backgroundX, 0, getWidth(), getHeight(), this);
             case PLAYING_LEVEL1, PLAYING_LEVEL3 -> {
-                g2.drawImage(gameState == GameState.PLAYING_LEVEL1 ? level1Image : level3Image, backgroundX, 0, getWidth(), getHeight(), this);
+                g2.drawImage(gameState == GameState.PLAYING_LEVEL1 ?
+                        level1Image :
+                        level3Image, backgroundX, 0, getWidth(), getHeight(), this);
                 for (Platform p : platforms) p.render(g2);
                 g2.setFont(new Font("Cascadia Code", Font.BOLD, 32));
-                g2.setColor(gameState == GameState.PLAYING_LEVEL1 ? new Color(241, 196, 15) : new Color(76, 187, 23));
+                g2.setColor(gameState == GameState.PLAYING_LEVEL1 ?
+                        new Color(241, 196, 15) :
+                        new Color(76, 187, 23));
                 g2.drawString("Time left: " + seconds + "s", 30, 50);
                 player.render(g2);
                 for (Enemy e : enemies) e.render(g2);
@@ -294,7 +312,12 @@ public class GamePanel extends JPanel implements Runnable {
                     e.render(g2);
                 }
                 int lives = Math.max(0, Math.min(player.getLives(), 2));
-                g2.drawImage(lifeBarImages[lives], 850, -50, 2 * platWidth, 6 * platHeight, this);
+                g2.drawImage(lifeBarImages[lives],
+                        850,
+                        -50,
+                        2 * platWidth,
+                        6 * platHeight,
+                        this);
             }
             case HELP -> {
                 g2.drawImage(help, backgroundX, 0, getWidth(), getHeight(), this);
