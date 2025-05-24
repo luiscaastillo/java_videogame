@@ -1,100 +1,88 @@
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-import javax.swing.*;
 import java.awt.*;
+import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
+import java.util.*;
+import java.util.List;
 import javax.imageio.ImageIO;
+import javax.swing.*;
 
-/**
- * Panel principal del juego que maneja la lógica y el renderizado.
- * Implementa Runnable para ejecutar el bucle del juego en un hilo separado.
- */
+
+// GamePanel is the main game surface, handling game logic, rendering, and input.
 public class GamePanel extends JPanel implements Runnable {
-    // Configuración de tamaño de tiles y pantalla
-    final int original_tile_size = 20;  // Tamaño original de un tile (20x20 píxeles)
-    final int scale = 3;                // Factor de escala para adaptar a resoluciones modernas
+    // Tile size and screen dimensions
+    final int tileSize = 60;
+    final int screenWidth = 18 * tileSize;
+    final int screenHeight = 12 * tileSize;
+    final int FPS = 60;
 
-    final int tile_size = original_tile_size * scale;  // Tamaño final de un tile después de escalar
-    final int width = 6 * scale;               // Número de tiles horizontales
-    final int height = 4 * scale;              // Número de tiles verticales
-    final int screen_width = width * tile_size;    // Ancho total de la pantalla en píxeles
-    final int screen_height = height * tile_size;  // Alto total de la pantalla en píxeles
-
+    // Tracks the current and previous game states
     GameState currGameState = GameState.MENU;
-
-    // Componentes del juego
-    KeyHandler keyH = new KeyHandler(this); // Manejador de eventos de teclado
-    Thread gameThread;                   // Hilo para el bucle del juego
-    Player player;                       // Jugador
-    int FPS = 60;              // Fotogramas por segundo objetivo
-
-    // Imágenes del juego
-    private Image level1Image;  // Imagen de fondo
-    private Image level2Image;  // Imagen de fondo
-    private Image level3Image;  // Imagen de fondo
-    private Image help;         // Imagen de fondo
-    private Image menuImage;        // Imagen del menú
-    private Image pauseImage;      // Imagen de pausa
-    private Image gameOverImage;   // Imagen de Game Over
-    private Image winImage;        // Imagen de victoria
-    private final Image[] lifeBarImages = new Image[3];
-
-
-    // Estado del juego
     private GameState gameState = GameState.MENU;
 
-    // Lista de plataformas
+    // Handles keyboard input
+    KeyHandler keyH = new KeyHandler(this);
+    // Main game thread
+    Thread gameThread;
+    // The player character
+    Player player;
+    // List of platforms and enemies in the game
     private final List<Platform> platforms = new ArrayList<>();
+    private final List<Enemy> enemies = new ArrayList<>();
+    // Random number generator for spawning
     private final Random random = new Random();
-    private int platformSpawnCounter = 0;
-    private int platformSpawnInterval = 90;
 
+    // Images for backgrounds, UI, and life bar
+    private Image level1Image, level2Image, level3Image, help, menuImage, pauseImage, gameOverImage, winImage;
+    private final Image[] lifeBarImages = new Image[3];
+
+    // Platform and enemy spawn control variables
+    private int platformSpawnTick = 0, platformSpawnInterval = 90;
+    private int enemySpawnCounter = 0;
+    private double platformSpeed = 4.0;
+    private int backgroundX = 0;
+    private final int platWidth = tileSize * 2;
+    private final int platHeight = tileSize / 2;
+    // Level timer and time limit
+    private int levelTimer;
+    private final int levelTimeLimit = 30 * FPS;
+    // Flag for starting level 3
+    private boolean startPlatformLvl = true;
+    // Global frame counter for timing
+    private int globalFrameCounter = 0;
+
+    // Rectangles for clickable UI buttons
+    private final Rectangle playButtonInMenu = new Rectangle(340, 200, 400, 130);
+    private final Rectangle exitButtonInMenu = new Rectangle(340, 450, 400, 100);
+    private final Rectangle helpButtonInMenu = new Rectangle(340, 330, 400, 130);
+    private final Rectangle playButtonInPause = new Rectangle(320, 250, 440, 90);
+    private final Rectangle exitButtonInPause = new Rectangle(320, 410, 440, 90);
+    private final Rectangle helpButtonInPause = new Rectangle(320, 570, 440, 90);
+    private final Rectangle replayButtonInGameOver = new Rectangle(200, 460, 660, 110);
+    private final Rectangle menuButtonInGameOver = new Rectangle(200, 300, 660, 110);
+    private final Rectangle exitButtonInGameOver = new Rectangle(340, 590, 370, 60);
+    private final Rectangle winButtonInWin = new Rectangle(0, 0, screenWidth, screenHeight);
+    private final Rectangle exitButtonInHelp = new Rectangle(0, 0, screenWidth, screenHeight);
+
+    // Handles background music and sound effects
     AudioPlayer audioPlayer = new AudioPlayer();
 
-    private final List<Enemy> enemies = new ArrayList<>();
-
-    // Botones del menú
-    private final Rectangle playMenuButton = new Rectangle(340, 200, 400, 130);
-    private final Rectangle exitMenuButton = new Rectangle(340, 450, 400, 100);
-    private final Rectangle helpMenuButton = new Rectangle(340, 330, 400, 130);
-
-    // Botones del pausa
-    private final Rectangle playPauseButton = new Rectangle(320, 250, 440, 90);
-    private final Rectangle exitPauseButton = new Rectangle(320, 410, 440, 90);
-    private final Rectangle helpPauseButton = new Rectangle(320, 570, 440, 90);
-
-    // Botones del game over
-    private final Rectangle replayButton = new Rectangle(200, 460, 660, 110);
-    private final Rectangle menuGOverButton = new Rectangle(200, 300, 660, 110);
-    private final Rectangle exitGOverButton = new Rectangle(340, 590, 370, 60);
-
-    // Botones de win
-    private final Rectangle winButton = new Rectangle(0, 0, screen_width, screen_height);
-
-    private final Rectangle exitHelpButton = new Rectangle(0, 0, screen_width, screen_height);
-
-    // Constructor del panel del juego
+    // Constructor initializes the panel, loads resources, and sets up input
     public GamePanel() {
-        this.setPreferredSize(new Dimension(screen_width, screen_height));
-        this.setBackground(Color.BLACK);
-        this.setDoubleBuffered(true);  // Mejora el rendimiento de renderizado
-        this.addKeyListener(keyH);     // Añade el detector de teclas al panel
-        this.setFocusable(true);
-        keyH = new KeyHandler(this);// Permite que el panel reciba eventos de teclado
-        this.addKeyListener(keyH); // Añade el manejador de teclas
-        // Inicializa al jugador
-        player = new Player(200, 500, tile_size, tile_size, 4, keyH, this);
+        setPreferredSize(new Dimension(screenWidth, screenHeight));
+        setBackground(Color.BLACK);
+        setDoubleBuffered(true);
+        addKeyListener(keyH);
+        setFocusable(true);
+
+        player = new Player(200, 500, tileSize, tileSize, 4, keyH, this);
         player.loadImage("Videogame/src/assets/player.png");
 
-        // Carga la imagen de fondo
         try {
+            // Load all required images
             level1Image = ImageIO.read(new File("Videogame/src/assets/level1.png"));
-            level3Image = ImageIO.read(new File("Videogame/src/assets/level3.png"));
             level2Image = ImageIO.read(new File("Videogame/src/assets/level2.png"));
+            level3Image = ImageIO.read(new File("Videogame/src/assets/level3.png"));
             pauseImage = ImageIO.read(new File("Videogame/src/assets/pause.png"));
             menuImage = ImageIO.read(new File("Videogame/src/assets/menu.png"));
             gameOverImage = ImageIO.read(new File("Videogame/src/assets/game_over.png"));
@@ -103,237 +91,146 @@ public class GamePanel extends JPanel implements Runnable {
             lifeBarImages[0] = ImageIO.read(new File("Videogame/src/assets/healthBar1.png"));
             lifeBarImages[1] = ImageIO.read(new File("Videogame/src/assets/healthBar2.png"));
             lifeBarImages[2] = ImageIO.read(new File("Videogame/src/assets/healthBar3.png"));
-
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        this.addMouseListener(new MouseAdapter() {
-            @Override
+        // Mouse listener for handling button clicks in different game states
+        addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
                 Point p = e.getPoint();
-//                Menu
-                if (gameState == GameState.MENU){
-                    if (playMenuButton.contains(p)) {
+                if (gameState == GameState.MENU) {
+                    if (playButtonInMenu.contains(p)) {
                         resetLevel();
                         setGameState(GameState.PLAYING_LEVEL1);
                         currGameState = gameState;
-                    } else if (helpMenuButton.contains(p)) {
+                    } else if (helpButtonInMenu.contains(p)) {
                         setGameState(GameState.HELP);
                         currGameState = gameState;
-                    }
-                    else if (exitMenuButton.contains(p)) {
+                    } else if (exitButtonInMenu.contains(p)) {
                         System.exit(0);
                     }
-                }
-//                Pausa
-                if (gameState == GameState.PAUSED) {
-                    if (playPauseButton.contains(p)) {
-                        setGameState(currGameState);
-
-                    } else if (exitPauseButton.contains(p)) {
-                        System.exit(0);
-                    } else if (helpPauseButton.contains(p)) {
-                        setGameState(GameState.HELP);
-                    }
-//                    Game Over
+                } else if (gameState == GameState.PAUSED) {
+                    if (playButtonInPause.contains(p)) setGameState(currGameState);
+                    else if (exitButtonInPause.contains(p)) System.exit(0);
+                    else if (helpButtonInPause.contains(p)) setGameState(GameState.HELP);
                 } else if (gameState == GameState.GAME_OVER) {
-                    if (replayButton.contains(p)) {
+                    if (replayButtonInGameOver.contains(p)) {
                         resetLevel();
                         setGameState(currGameState);
-                    } else if (exitGOverButton.contains(p)) {
-                        System.exit(0);
-                    } else if (menuGOverButton.contains(p)) {
+                    } else if (exitButtonInGameOver.contains(p)) System.exit(0);
+                    else if (menuButtonInGameOver.contains(p)) {
                         resetLevel();
                         setGameState(GameState.MENU);
                         currGameState = gameState;
                     }
-//                    Win
                 } else if (gameState == GameState.WIN) {
-                    if (winButton.contains(p)) {
+                    if (winButtonInWin.contains(p)) {
                         setGameState(GameState.MENU);
-
                         resetLevel();
                     }
                 } else if (gameState == GameState.HELP) {
-                    if (exitHelpButton.contains(p)) {
-                        setGameState(currGameState);
-                    }
+                    if (exitButtonInHelp.contains(p)) setGameState(currGameState);
                 }
             }
         });
+
+        levelTimer = levelTimeLimit;
     }
 
+    // Starts the main game loop in a new thread
     public void startGameThread() {
         gameThread = new Thread(this);
         gameThread.start();
     }
 
-    // Add these methods to GamePanel
-    public GameState getGameState() {
-        return gameState;
-    }
+    // Returns the current game state
+    public GameState getGameState() { return gameState; }
 
-    public void setGameState(GameState gameState) {
-        this.gameState = gameState;
-        audioPlayer.stop(); // Stop any previous music
-        switch (gameState) {
-            case PLAYING_LEVEL1:
-                audioPlayer.playBackgroundMusic("Videogame/src/assets/audio2.wav");
-                break;
-            case PLAYING_LEVEL2:
-                audioPlayer.playBackgroundMusic("Videogame/src/assets/audio1.wav");
-                break;
-            case PLAYING_LEVEL3:
-                audioPlayer.playBackgroundMusic("Videogame/src/assets/audio3.wav");
-                break;
+    // Sets the game state and handles background music changes
+    public void setGameState(GameState state) {
+        gameState = state;
+        audioPlayer.stop();
+        switch (state) {
+            case PLAYING_LEVEL1 -> audioPlayer.playBackgroundMusic("Videogame/src/assets/audio2.wav");
+            case PLAYING_LEVEL2 -> audioPlayer.playBackgroundMusic("Videogame/src/assets/audio1.wav");
+            case PLAYING_LEVEL3 -> audioPlayer.playBackgroundMusic("Videogame/src/assets/audio3.wav");
         }
     }
 
+    // Main game loop, handles timing and calls update/repaint
     @Override
     public void run() {
-        double draw_interval = 1000000000.0 / FPS;  // Nanosegundos por fotograma
-        double delta = 0;
-        long last_time = System.nanoTime();
-        long current_time;
-        long timer = 0;
-        int draw_count = 0;
-
-        // Bucle principal del juego
+        double drawInterval = 1_000_000_000.0 / FPS, delta = 0;
+        long lastTime = System.nanoTime(), timer = 0;
+        int drawCount = 0;
         while (gameThread.isAlive()) {
-            current_time = System.nanoTime();
-            delta += (current_time - last_time) / draw_interval;
-            timer += current_time - last_time;
-            last_time = current_time;
-
-            // Actualiza y renderiza cuando es tiempo de un nuevo fotograma
+            long currentTime = System.nanoTime();
+            delta += (currentTime - lastTime) / drawInterval;
+            timer += currentTime - lastTime;
+            lastTime = currentTime;
             if (delta >= 1) {
-                if (gameState == GameState.PLAYING_LEVEL3 || gameState == GameState.PLAYING_LEVEL2 || gameState == GameState.PLAYING_LEVEL1) {
-                    update();   // Only update game logic if playing
-                }
-                repaint();      // Always repaint to show menu or pause screen
+                if (gameState == GameState.PLAYING_LEVEL1 || gameState == GameState.PLAYING_LEVEL2 || gameState == GameState.PLAYING_LEVEL3)
+                    update();
+                repaint();
                 delta--;
-                draw_count++;
+                drawCount++;
             }
-
-            // Muestra los FPS cada segundo
-            if (timer >= 1000000000) {
-                System.out.println("FPS: " + draw_count);
-                draw_count = 0;
+            if (timer >= 1_000_000_000) {
+                System.out.println("FPS: " + drawCount);
+                drawCount = 0;
                 timer = 0;
             }
         }
     }
 
-    // Variables para el temporizador de nivel
-    private final int levelTimeLimit = 30 * FPS;
-    private int levelTimer = levelTimeLimit; // in frames
-
-    private int level2EnemySpawnCounter = 0;
-
-
-    // Variables para la velocidad de la plataforma
-    private double platformSpeed = 4.0;
-
-    // Posición del fondo
-    private int backgroundX = 0;
-
-    int platWidth = tile_size * 2;
-    int platHeight = tile_size / 2;
-
-    // Actualiza la lógica del juego (movimiento, colisiones, etc).
-    boolean startLevel3 = true;
-
-    private int globalFrameCounter = 0;
-
-
+    // Updates game logic based on the current state
     public void update() {
-        // Actualiza la posición del fondo para simular el auto-scroll
-        // Velocidad del auto-scroll
+        // Update player and game state
         currGameState = gameState;
         globalFrameCounter++;
-        player.update(screen_height, platforms);
+        player.update(screenHeight, platforms);
 
+        // Handle pausing
         if (keyH.escapePressed) {
             currGameState = gameState;
             gameState = GameState.PAUSED;
         }
 
-        // frames (2 seconds at 60 FPS)
-        int level2EnemySpawnInterval = 120;
+        int enemySpawnInterval = 120;
+        // Handle platform spawning and movement
         switch (gameState) {
-            case PLAYING_LEVEL1:
-            case PLAYING_LEVEL3:
-            if (startLevel3) {
-                platforms.add(new Platform(0, 650, 2 * platWidth, platHeight, 1));
-                backgroundX -= (int) platformSpeed;
-                startLevel3 = false;
-            }
-
-            // Reinicia la posición del fondo cuando salga completamente de la pantalla
-            if (backgroundX <= -screen_width) {
-                backgroundX = 0;
-            }
-
-            // Actualiza la posición de las plataformas
-            // Set your desired Y range
-            int minY = 450; // minimum Y position
-            int maxY = 600; // maximum Y position
-
-            // When spawning a platform:
-            int maxPlatformSpawnInterval = 60;
-            // minimum spawn interval
-            platformSpawnCounter++;
-            if (platformSpawnCounter >= platformSpawnInterval) {
-                if (platformSpawnInterval > maxPlatformSpawnInterval) {
-                    // Reduce the spawn interval to increase difficulty
-                    platformSpawnInterval -= 5;
+            case PLAYING_LEVEL1, PLAYING_LEVEL3 -> {
+                if (startPlatformLvl) {
+                    platforms.add(new Platform(0, 650, 2 * platWidth, platHeight, 1));
+                    backgroundX -= (int) platformSpeed;
+                    startPlatformLvl = false;
                 }
-                platformSpawnCounter = 0;
-                // Spawn a new platform
-                int platY = random.nextInt(maxY - minY + 1) + minY;
-                platforms.add(new Platform(screen_width, platY, platWidth, platHeight, 0));
-
-            }
-
-            for (Platform p : platforms) {
-                if (p.type == 1) {
-                    p.x -= (int) platformSpeed / 4; // Move floor slower
-                } else {
-                    p.x -= (int) platformSpeed;
+                if (backgroundX <= -screenWidth) backgroundX = 0;
+                int minY = 450, maxY = 600, maxPlatformSpawnInterval = 60;
+                platformSpawnTick++;
+                if (platformSpawnTick >= platformSpawnInterval) {
+                    if (platformSpawnInterval > maxPlatformSpawnInterval) platformSpawnInterval -= 5;
+                    platformSpawnTick = 0;
+                    int platY = random.nextInt(maxY - minY + 1) + minY;
+                    platforms.add(new Platform(screenWidth, platY, platWidth, platHeight, 0));
                 }
+                for (Platform p : platforms)
+                    p.x -= (p.type == 1) ? (int) platformSpeed / 4 : (int) platformSpeed;
+                platforms.removeIf(p -> p.x + p.width < 0);
+                if (player.isOnFloor(screenHeight)) setGameState(GameState.GAME_OVER);
+                if (platformSpeed < 20.0) platformSpeed += 0.01;
             }
-
-            platforms.removeIf(p -> p.x + p.width < 0);
-
-            // Actualiza al jugador
-            if (player.isOnFloor(screen_height)) {
-                // Player has fallen off the screen
-                setGameState(GameState.GAME_OVER);
-            }
-
-            double maxPlatformSpeed = 20.0;
-            if (platformSpeed < maxPlatformSpeed) {
-                // Adjust for desired acceleration
-                double increment = 0.01;
-                platformSpeed += increment;
-            }
-
-            break;
-            case PLAYING_LEVEL2:
-                // Example: spawn an enemy every interval with 50% chance
-                level2EnemySpawnCounter++;
-                if (level2EnemySpawnCounter >= level2EnemySpawnInterval) {
-                    level2EnemySpawnCounter = 0;
-                    int enemyX = random.nextInt(screen_width - tile_size);
-                    int floorY = screen_height - 2 * tile_size; // Align with floor
-                    enemies.add(new Enemy(enemyX, floorY, tile_size, tile_size));
+            case PLAYING_LEVEL2 -> {
+                enemySpawnCounter++;
+                if (enemySpawnCounter >= enemySpawnInterval) {
+                    enemySpawnCounter = 0;
+                    int enemyX = random.nextInt(screenWidth - tileSize);
+                    int floorY = screenHeight - 2 * tileSize;
+                    enemies.add(new Enemy(enemyX, floorY, tileSize, tileSize));
                 }
-                // Update existing enemies if needed
-                for (Enemy e : enemies) {
-                    e.update();
-                }
-                int cooldownFrames = 120; // 2 seconds at 60 FPS
+                for (Enemy e : enemies) e.update();
+                int cooldownFrames = 120;
                 for (Enemy e : enemies) {
                     if (player.getBounds().intersects(e.getBounds())) {
                         e.setHit(true);
@@ -347,84 +244,47 @@ public class GamePanel extends JPanel implements Runnable {
                         }
                     }
                 }
-
                 enemies.removeIf(Enemy::isDead);
-
-            break;
-            case GAME_OVER:
-            case WIN:
-                resetLevel();
-                break;
+            }
+            case GAME_OVER, WIN -> resetLevel();
         }
 
-        if (gameState == GameState.PLAYING_LEVEL3 || gameState == GameState.PLAYING_LEVEL2 || gameState == GameState.PLAYING_LEVEL1) {
+        // Handle level timer and transitions
+        if (gameState == GameState.PLAYING_LEVEL1 || gameState == GameState.PLAYING_LEVEL2 || gameState == GameState.PLAYING_LEVEL3) {
             levelTimer--;
             if (levelTimer <= 0) {
                 switch (gameState) {
-                    case PLAYING_LEVEL1:
-                        setGameState(GameState.PLAYING_LEVEL2);
-                        break;
-                    case PLAYING_LEVEL2:
-                        setGameState(GameState.PLAYING_LEVEL3);
-                        break;
-                    case PLAYING_LEVEL3:
-                        setGameState(GameState.WIN);
-                        break;
+                    // Transition to the next level or win state
+                    case PLAYING_LEVEL1 -> setGameState(GameState.PLAYING_LEVEL2);
+                    case PLAYING_LEVEL2 -> setGameState(GameState.PLAYING_LEVEL3);
+                    case PLAYING_LEVEL3 -> setGameState(GameState.WIN);
                 }
             }
         }
     }
 
+    // Renders the game based on the current state
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         int seconds = levelTimer / FPS;
         Graphics2D g2 = (Graphics2D) g;
         switch (gameState) {
-            case MENU:
-                g2.drawImage(menuImage, backgroundX, 0, this.getWidth(), this.getHeight(), this);
-                break;
-
-            case PAUSED:
-                g2.drawImage(pauseImage, backgroundX, 0, this.getWidth(), this.getHeight(), this);
-                break;
-
-            case GAME_OVER:
-                g2.drawImage(gameOverImage, backgroundX, 0, this.getWidth(), this.getHeight(), this);
-                break;
-
-            case WIN:
-                g2.drawImage(winImage, backgroundX, 0, this.getWidth(), this.getHeight(), this);
-                break;
-            case PLAYING_LEVEL1:
-            case PLAYING_LEVEL3:
-                if (gameState == GameState.PLAYING_LEVEL1) {
-                    g2.drawImage(level1Image, backgroundX, 0, this.getWidth(), this.getHeight(), this);
-                } else {
-                    g2.drawImage(level3Image, backgroundX, 0, this.getWidth(), this.getHeight(), this);
-                }
-                for (Platform p : platforms) {
-                    p.render(g2);
-                }
-                // Draw timer (top left corner)
+            case MENU -> g2.drawImage(menuImage, backgroundX, 0, getWidth(), getHeight(), this);
+            case PAUSED -> g2.drawImage(pauseImage, backgroundX, 0, getWidth(), getHeight(), this);
+            case GAME_OVER -> g2.drawImage(gameOverImage, backgroundX, 0, getWidth(), getHeight(), this);
+            case WIN -> g2.drawImage(winImage, backgroundX, 0, getWidth(), getHeight(), this);
+            case PLAYING_LEVEL1, PLAYING_LEVEL3 -> {
+                g2.drawImage(gameState == GameState.PLAYING_LEVEL1 ? level1Image : level3Image, backgroundX, 0, getWidth(), getHeight(), this);
+                for (Platform p : platforms) p.render(g2);
                 g2.setFont(new Font("Cascadia Code", Font.BOLD, 32));
-                if (gameState == GameState.PLAYING_LEVEL1) {
-                    g2.setColor(new Color(241, 196, 15));
-                }
-                else {
-                    g2.setColor(new Color(76, 187, 23));
-                }
+                g2.setColor(gameState == GameState.PLAYING_LEVEL1 ? new Color(241, 196, 15) : new Color(76, 187, 23));
                 g2.drawString("Time left: " + seconds + "s", 30, 50);
-                // Dibuja al jugador
                 player.render(g2);
-
-                for (Enemy e : enemies) {
-                    e.render(g2);
-                }
-
-                break;
-            case PLAYING_LEVEL2:
-                g2.drawImage(level2Image, backgroundX, 0, this.getWidth(), this.getHeight(), this);
+                for (Enemy e : enemies) e.render(g2);
+            }
+            case PLAYING_LEVEL2 -> {
+                g2.drawImage(level2Image, backgroundX, 0, getWidth(), getHeight(), this);
                 player.render(g2);
                 g2.setFont(new Font("Cascadia Code", Font.BOLD, 32));
                 g2.setColor(new Color(255, 87, 23));
@@ -433,59 +293,54 @@ public class GamePanel extends JPanel implements Runnable {
                     e.setPlayer(player);
                     e.render(g2);
                 }
-
-                int lives = player.getLives();
-                lives = Math.max(0, Math.min(lives, 2)); // Clamp between 0 and 3
-                g2.drawImage(lifeBarImages[lives], 850, -50, 2*platWidth, 6*platHeight, this);
-                break;
-
-            case HELP:
-                g2.drawImage(help, backgroundX, 0, this.getWidth(), this.getHeight(), this);
-
-                String text = """
-                        Para jugar, usa las teclas de A y D para moverte.
-                        Presiona W para saltar.
-                        Presiona S para caer (Niveles 1 y 3).
-                        Evita a los enemigos y sobrevive el tiempo necesario
-                        ¡Buena suerte!""";
+                int lives = Math.max(0, Math.min(player.getLives(), 2));
+                g2.drawImage(lifeBarImages[lives], 850, -50, 2 * platWidth, 6 * platHeight, this);
+            }
+            case HELP -> {
+                g2.drawImage(help, backgroundX, 0, getWidth(), getHeight(), this);
+                String[] lines = {
+                    "Para jugar, usa las teclas de A y D para moverte.",
+                    "Presiona W para saltar.",
+                    "Presiona S para caer (Niveles 1 y 3).",
+                    "Evita a los enemigos y sobrevive el tiempo necesario",
+                    "¡Buena suerte!"
+                };
                 g2.setFont(new Font("Cascadia Code", Font.BOLD, 32));
                 FontMetrics fm = g2.getFontMetrics();
-                String[] lines = text.split("\n");
-
                 int lineHeight = fm.getHeight();
                 int totalTextHeight = lines.length * lineHeight;
                 int y = (getHeight() - totalTextHeight) / 2 + fm.getAscent();
-
                 for (String line : lines) {
                     int textWidth = fm.stringWidth(line);
                     int x = (getWidth() - textWidth) / 2;
                     g2.setColor(new Color(17, 122, 101));
                     g2.drawString(line, x + 2, y + 2);
-
                     g2.setColor(new Color(26, 188, 156));
                     g2.drawString(line, x, y);
                     y += lineHeight;
                 }
-                break;
-
+            }
         }
         g2.dispose();
     }
 
-    // Reset or load level-specific data
+    // Resets the game state and entities for a new level
     private void resetLevel() {
+        // Clear platforms and enemies
         platforms.clear();
         enemies.clear();
+        // Reset player state
         player.setLives(3);
         player.resetPosition();
         player.facingRight = true;
+        // Reset level timer and platform state
         levelTimer = levelTimeLimit;
-        startLevel3 = true;
+        startPlatformLvl = true;
         audioPlayer.stop();
-        platformSpawnCounter = 0;
+        // Reset platform and background state
+        platformSpawnTick = 0;
         platformSpeed = 4.0;
         platformSpawnInterval = 90;
         backgroundX = 0;
     }
-
 }
