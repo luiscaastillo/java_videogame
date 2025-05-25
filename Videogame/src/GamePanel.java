@@ -271,10 +271,8 @@ public class GamePanel extends JPanel implements Runnable {
                     case PLAYING_LEVEL3 -> setGameState(GameState.WIN);
                 }
                 levelTimer = levelTimeLimit;
-                return;
             }
         }
-        System.out.println(gameState);
     }
 
     // Renders the game based on the current state
